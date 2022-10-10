@@ -12,6 +12,7 @@ username = 'emqx'
 password = 'public'
 broker = 'broker.emqx.io'
 port = 1883
+
 #gerando ID
 hidrometroiD = str(random.randint(1024,5000))
 topic = 'HIDROMETROS' #o tópico é o ID do hidrometro
@@ -57,10 +58,11 @@ def connect_mqtt():
         else:
             print("Erro na conexão %d\n", rc)
 
-    client = mqtt_client.Client(hidrometroiD)
-    client.username_pw_set(username, password)
+    client = mqtt_client.Client(hidrometroiD)           
+    client.username_pw_set(username, password)                  #Defina um nome de usuário e, opcionalmente, uma senha para autenticação do agente
     client.on_connect = on_connect
-    client.connect(broker, port)
+    client.connect(broker, port)                                #conecta o cliente a um broker
+    
     return client
 
 '''Primeiro, definimos um loop de tempo.
@@ -74,28 +76,29 @@ def publish(client):
     global status
     global grau    
     statusEnvio = 0
+
     while True:
-        if status == False:        
-            time.sleep(1)
+        if status == False:                                     #se o status do hidrometro for "desbloqueado"
+            time.sleep(1)                                       #espera 1 segundo
             print('*'*40)
             vazao = geraVazao(grau)
             print('Foi consumido:\n', vazao)
             print('*'*40)                  
             time.sleep(2)                 
-            data = getData() #pegando o momento da consumo        
-            print('A vazão atual é de:', vazao) 
-            litroConsumidos = int(litroConsumidos + vazao)
+            data = getData()                                    #pegando o momento da consumo        
+            print('A vazão atual é de:', vazao)         
+            litroConsumidos = int(litroConsumidos + vazao)      
             print('Temos', litroConsumidos, 'L consumidos')  
             litroConsumidos = str(litroConsumidos)
             vazao = str(vazao) 
             vaza = vazamento(pressao)
             infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
-            result = client.publish('Hidrometros', infoHidro)
+            result = client.publish('Hidrometros', infoHidro)   #publica informação no tópico Hidrometros
             litroConsumidos = int(litroConsumidos)
             vazao = int(vazao)          
             # result: [0, 1]
             statusEnvio = result[0]
-        else:
+        else:                                                   #se o status do hidrometro for "bloqueado"
             print('*'*40)
             print('Seu hidrometro está bloqueado, realize o pagamento.')
             vazao = 0
@@ -118,15 +121,16 @@ def publish(client):
             litroConsumidos = int(litroConsumidos)
             vazao = int(vazao)                
             time.sleep(2)            
-            statusEnvio = result[0]                   
-        if statusEnvio == 0: #caso esteja enviando
-            if status == False:                       
+            statusEnvio = result[0]         
+
+        if statusEnvio == 0:        #caso esteja enviando
+            if status == False:                                  #se o status do hidrometro for "desbloqueado"
                 print('*'*40)
                 vazao = geraVazao(grau)
                 print('Foi consumido:\n', vazao)
                 print('*'*40)                  
                 time.sleep(2)                 
-                data = getData() #pegando o momento da consumo        
+                data = getData()    #pegando o momento da consumo        
                 print('A vazão atual é de:', vazao) 
                 litroConsumidos = int(litroConsumidos + vazao)
                 print('Temos', litroConsumidos, 'L consumidos')  
@@ -142,7 +146,7 @@ def publish(client):
                 litroConsumidos = int(litroConsumidos)
                 vazao = int(vazao)                
                 time.sleep(2)
-            else:
+            else:                                               #se o status do hidrometro for "bloqueado"
                 print('*'*40)
                 print('Seu hidrometro está bloqueado, realize o pagamento.')
                 vazao = 0

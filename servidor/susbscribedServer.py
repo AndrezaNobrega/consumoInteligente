@@ -7,12 +7,14 @@ from paho.mqtt import client as mqtt_client
 broker = 'broker.emqx.io'
 port = 1883
 topic = "Hidrometros"
+
 #gerando o ID
 client_id = f'python-mqtt-{random.randint(0, 100)}'
 username = 'emqx'
 password = 'public'
 
 
+#função para conectar ao broker
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -26,7 +28,7 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     return client
 
-
+#função para receber msg do tópico inscrito
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Recebendo do tópico `{msg.topic}`:")
