@@ -1,18 +1,17 @@
 import random
-
 from paho.mqtt import client as mqtt_client
 
 
 #parâmetros de conexão com o broker
 broker = 'broker.emqx.io'
 port = 1883
-topic = "Hidrometros"
+topic = "Hidrometros/#"
 #gerando o ID
 client_id = f'python-mqtt-{random.randint(0, 100)}'
 username = 'emqx'
 password = 'public'
 
-#método de conexão ao broker
+
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -26,12 +25,12 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     return client
 
-#método para inscrever
+
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Recebendo do tópico `{msg.topic}`:")
         mensagem = msg.payload.decode()        
-        listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')  #a variável temp é aux para o demsempacotamento c o split        
+        listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split        
         print('\nLitros utilizados: ' + listrosUtilizados)
         print('\nHorário/Data: ' + dataH)
         print('\nVazão atual: ' + vazao)

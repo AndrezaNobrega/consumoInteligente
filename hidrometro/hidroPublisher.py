@@ -1,11 +1,9 @@
 import random
 import time
 from paho.mqtt import client as mqtt_client
-import threading
 import time
 import hidrometro
 import datetime
-
 
 # parametros broker
 username = 'emqx'
@@ -14,12 +12,11 @@ broker = 'broker.emqx.io'
 port = 1883
 #gerando ID
 hidrometroiD = str(random.randint(1024,5000))
-topic = 'HIDROMETROS' #o tópico é o ID do hidrometro
+topic = 'Hidrometros/'+ str(hidrometroiD) 
 #variáveis p inicialização do hidrômetro
 litroConsumidos = 0
 status = False
 pressao = 1 #aqui é a pressão que está sendo exercida no hidrometro
-sem = threading.Semaphore() #semaforo
 hidrometro1 = hidrometro.Hidrometro(hidrometroiD) #cria objeto
 vazao = 0 #inicializando variável
 pressao = str(random.randint(0,9)) #fica sendo gerado um valor entre 0 e 10, caso esse valor seja zero, significa que há algum problema nos canos
@@ -49,7 +46,6 @@ def geraVazao(grau):
     elif grau == '3':
         return random.randint(25,50)
 
-
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -72,8 +68,8 @@ def publish(client):
     global pressao
     global vazao
     global status
-    global grau    
-    statusEnvio = 0
+    global grau  
+    global topic  
     while True:
         if status == False:        
             time.sleep(1)
@@ -87,10 +83,12 @@ def publish(client):
             litroConsumidos = int(litroConsumidos + vazao)
             print('Temos', litroConsumidos, 'L consumidos')  
             litroConsumidos = str(litroConsumidos)
-            vazao = str(vazao) 
+            vazao = str(vazao)
+            pressao = str(random.randint(0,9)) #gerando uma pressão 
             vaza = vazamento(pressao)
             infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
-            result = client.publish('Hidrometros', infoHidro)
+            result = client.publish(topic, infoHidro)
+            print(hidrometroiD)
             litroConsumidos = int(litroConsumidos)
             vazao = int(vazao)          
             # result: [0, 1]
@@ -107,10 +105,11 @@ def publish(client):
             litroConsumidos = int(litroConsumidos + vazao)
             print('Temos', litroConsumidos, 'L consumidos')  
             litroConsumidos = str(litroConsumidos)
-            vazao = str(vazao) 
+            vazao = str(vazao)
+            pressao = str(random.randint(0,9)) #gerando pressao 
             vaza = vazamento(pressao)
             infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
-            result = client.publish('Hidrometros', infoHidro)
+            result = client.publish('Hidrometros/123', infoHidro)
             statusEnvio = result[0]
             print('______________________________________________________________________') 
             print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
@@ -134,7 +133,7 @@ def publish(client):
                 vazao = str(vazao) 
                 vaza = vazamento(pressao)
                 infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
-                result = client.publish('Hidrometros', infoHidro)
+                result = client.publish('Hidrometros/123', infoHidro) #tópico ta aqui
                 statusEnvio = result[0]
                 print('______________________________________________________________________') 
                 print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
@@ -157,7 +156,7 @@ def publish(client):
                 vazao = str(vazao) 
                 vaza = vazamento(pressao)
                 infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
-                result = client.publish('Hidrometros', infoHidro)
+                result = client.publish('Hidrometros/123', infoHidro)
                 statusEnvio = result[0]
                 print('______________________________________________________________________') 
                 print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
