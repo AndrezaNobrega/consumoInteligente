@@ -10,7 +10,8 @@ import datetime
 # parametros broker
 username = 'emqx'
 password = 'public'
-broker = 'broker.emqx.io'
+#broker = 'broker.emqx.io'
+broker = "localhost"
 port = 1883
 
 #gerando ID

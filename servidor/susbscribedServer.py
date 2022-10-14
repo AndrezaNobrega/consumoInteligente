@@ -4,9 +4,11 @@ from paho.mqtt import client as mqtt_client
 
 
 #parâmetros de conexão com o broker
-broker = 'broker.emqx.io'
+#broker = 'broker.emqx.io'
+broker = "localhost"
 port = 1883
 topic = "Hidrometros"
+
 
 #gerando o ID
 client_id = f'python-mqtt-{random.randint(0, 100)}'
