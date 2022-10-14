@@ -109,7 +109,7 @@ def publish(client):
             pressao = str(random.randint(0,9)) #gerando pressao 
             vaza = vazamento(pressao)
             infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
-            result = client.publish('Hidrometros/123', infoHidro)
+            result = client.publish(topic, infoHidro)
             statusEnvio = result[0]
             print('______________________________________________________________________') 
             print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
@@ -133,7 +133,7 @@ def publish(client):
                 vazao = str(vazao) 
                 vaza = vazamento(pressao)
                 infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
-                result = client.publish('Hidrometros/123', infoHidro) #tópico ta aqui
+                result = client.publish(topic, infoHidro) #tópico ta aqui
                 statusEnvio = result[0]
                 print('______________________________________________________________________') 
                 print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
@@ -156,7 +156,7 @@ def publish(client):
                 vazao = str(vazao) 
                 vaza = vazamento(pressao)
                 infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
-                result = client.publish('Hidrometros/123', infoHidro)
+                result = client.publish(topic, infoHidro)
                 statusEnvio = result[0]
                 print('______________________________________________________________________') 
                 print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
