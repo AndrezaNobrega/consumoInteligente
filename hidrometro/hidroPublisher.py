@@ -8,8 +8,10 @@ import datetime
 # parametros broker
 username = 'emqx'
 password = 'public'
-broker = 'broker.emqx.io'
+broker = 'localhost'                        #inicializar mosquitto através do cmd
 port = 1883
+
+
 #gerando ID
 hidrometroiD = str(random.randint(1024,5000))
 topic = 'Hidrometros/'+ str(hidrometroiD) 

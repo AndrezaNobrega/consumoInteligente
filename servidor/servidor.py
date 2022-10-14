@@ -3,15 +3,16 @@ import random
 from paho.mqtt import client as mqtt_client
 
 
-broker = 'broker.emqx.io'
+broker = 'localhost'                                     #inicializar mosquitto através do cmd
 port = 1883
 topic = 'NoNevoa/#'
+
 # generate client ID with pub prefix randomly
 client_id = f'python-mqtt-{random.randint(0, 100)}'
 username = 'emqx'
 password = 'public'
 
-
+#método para conexão ao mqtt
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -25,7 +26,7 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     return client
 
-
+#método para inscrição ao tópico
 def subscribe(client: mqtt_client):
     dado = []
     def on_message(client, userdata, msg):        
