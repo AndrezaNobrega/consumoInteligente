@@ -11,8 +11,7 @@ topic = "Hidrometros/#"  #recebendo todos os hidrômetros
 client_id = f'python-mqtt-{random.randint(0, 100)}'
 username = 'emqx'
 password = 'public'
-
-dado = []
+dado = [] #bd da nuvem
 
 
 
@@ -55,8 +54,8 @@ def subscribe(client: mqtt_client):
 def publish(client):
     global dado    
     status = 0
-    hidrometroiD = str(random.randint(1024,5000))
-    topicoNo = 'NoNevoa/'+ str(hidrometroiD)  
+    noNevoa = str(random.randint(1024,5000))
+    topicoNo = 'NoNevoa/'+ str(noNevoa)  
     while True:
         for dado in dado:            
             info = dado
