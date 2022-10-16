@@ -168,11 +168,19 @@ def publish(client):
             print(f"ERRO FALHA NO ENVIO PARA: {topic}")
             print('Consulte sua rede')
 
+#para o hidrômetro receber informações
+def subscribe(client: mqtt_client):
+    def on_message(client, userdata, msg):
+        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+
+    client.subscribe("nevoa/#")
+    client.on_message = on_message
+
 def run():
     client = connect_mqtt()
     client.loop_start()
-    publish(client)
-
+    subscribe(client)        
+    publish(client) 
 
 if __name__ == '__main__':
     run()
