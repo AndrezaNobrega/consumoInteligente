@@ -1,25 +1,33 @@
 lista = []
+lista.append('15')
+for i in range(5):
+    add = str(i)
+    lista.append(add)
+    i = int(i)
+lista.append(';')
+lista.append('25')
+for i in range(5):
+    add = str(i)
+    lista.append(add)
+    i = int(i)
+lista.append(';')
+lista.append('25')
+for i in range(5):
+    add = str(i)
+    lista.append(add)
+    i = int(i)
+lista.append(';')
 
-
-
-
-teste = ('11111: 3')
-idL, nL = teste.split(':')
-if len(lista) != 0:
-    indice = 0
-    for no in lista:        
-        id, numeroHidros = no.split(':')
-        if id == idL: #se já existe na lista 
-            print('antes do pop', lista)
-            print(indice)           
-            lista.pop(indice) #apagamos o anterior 
-            print('depois do pop', lista) 
-        indice =+ 1 #para pegar o indice que deve ser deletado    
-    teste = (idL+ ':'+ nL) 
-    lista.append(teste) #atualizamos o valor
-    print(lista)
+print(lista)
+hidroNovo = '7'
+encontrado = '0'
+for no in lista:
+    for hidro in no:
+        if hidro == hidroNovo:            
+            encontrado = '1'
+            break
+if encontrado == '1':
+    print('encontrado')
 else:
-    teste = (idL+ ':'+ nL) 
-    lista.append(teste) #atualizamos o valor
-    print(lista)
-    
+    print('não foi encontrado')
+
