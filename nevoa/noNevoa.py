@@ -2,6 +2,7 @@ import random
 from paho.mqtt import client as mqtt_client
 import time
 
+
 #parâmetros de conexão com o broker
 broker = 'broker.emqx.io'
 port = 1883
