@@ -12,7 +12,7 @@ broker = 'broker.emqx.io'
 port = 1883
 #gerando ID
 hidrometroiD = str(random.randint(1024,5000))
-topic = 'Hidrometros/'+ str(hidrometroiD) 
+topic = 'Hidrometros/'+str(input('Digite o setor do seu hidrometro:'))+'/'+ str(hidrometroiD) 
 #variáveis p inicialização do hidrômetro
 litroConsumidos = 0
 status = False
@@ -71,13 +71,11 @@ def publish(client):
     global grau  
     global topic  
     while True:
-        if status == False:        
-            time.sleep(1)
+        if status == False:  
             print('*'*40)
             vazao = geraVazao(grau)
             print('Foi consumido:\n', vazao)
-            print('*'*40)                  
-            time.sleep(2)                 
+            print('*'*40)                
             data = getData() #pegando o momento da consumo        
             print('A vazão atual é de:', vazao) 
             litroConsumidos = int(litroConsumidos + vazao)
@@ -98,8 +96,7 @@ def publish(client):
             print('Seu hidrometro está bloqueado, realize o pagamento.')
             vazao = 0
             print('*'*40)
-            time.sleep(2)
-            time.sleep(2)                 
+            time.sleep(2)              
             data = getData() #pegando o momento da consumo        
             print('A vazão atual é de:', vazao) 
             litroConsumidos = int(litroConsumidos + vazao)
@@ -119,12 +116,11 @@ def publish(client):
             time.sleep(2)            
             statusEnvio = result[0]                   
         if statusEnvio == 0: #caso esteja enviando
-            if status == False:                       
+            if status == False:                     
                 print('*'*40)
                 vazao = geraVazao(grau)
                 print('Foi consumido:\n', vazao)
-                print('*'*40)                  
-                time.sleep(2)                 
+                print('*'*40)               
                 data = getData() #pegando o momento da consumo        
                 print('A vazão atual é de:', vazao) 
                 litroConsumidos = int(litroConsumidos + vazao)
@@ -145,9 +141,7 @@ def publish(client):
                 print('*'*40)
                 print('Seu hidrometro está bloqueado, realize o pagamento.')
                 vazao = 0
-                print('*'*40)
-                time.sleep(2)
-                time.sleep(2)                 
+                print('*'*40)            
                 data = getData() #pegando o momento da consumo        
                 print('A vazão atual é de:', vazao) 
                 litroConsumidos = int(litroConsumidos + vazao)
@@ -172,7 +166,6 @@ def publish(client):
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-
     client.subscribe("nevoa/#")
     client.on_message = on_message
 
