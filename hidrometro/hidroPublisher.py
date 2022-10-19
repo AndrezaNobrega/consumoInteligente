@@ -5,7 +5,6 @@ import time
 import hidrometro
 import datetime
 
-
 # parametros broker
 username = 'emqx'
 password = 'public'
