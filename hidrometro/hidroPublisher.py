@@ -1,3 +1,4 @@
+from ast import Global
 import random
 import time
 from paho.mqtt import client as mqtt_client
@@ -12,7 +13,8 @@ broker = 'broker.emqx.io'
 port = 1883
 #gerando ID
 hidrometroiD = str(random.randint(1024,5000))
-topic = 'Hidrometros/'+str(input('Digite o setor do seu hidrometro:'))+'/'+ str(hidrometroiD) 
+setor = str(input('Digite o setor do seu hidrometro:'))
+topic = 'Hidrometros/'+ setor+'/'+ str(hidrometroiD) 
 #variáveis p inicialização do hidrômetro
 litroConsumidos = 0
 status = False
@@ -163,10 +165,18 @@ def publish(client):
             print('Consulte sua rede')
 
 #para o hidrômetro receber informações
-def subscribe(client: mqtt_client):
+def subscribe(client: mqtt_client):   
     def on_message(client, userdata, msg):
+        global hidrometroiD, setor, status
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-    client.subscribe("nevoa/#")
+        mensagem = msg.payload.decode()
+        if mensagem == 'bloqueado':
+            status = True
+            print('Seu hidrometros foi bloqueado.')
+        else:
+            status = False
+            print('Seu hidrometro foi desbloqueado')
+    client.subscribe("bloqueio/"+ setor)
     client.on_message = on_message
 
 def run():

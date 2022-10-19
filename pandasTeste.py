@@ -4,6 +4,9 @@ db = [[154,	'29-09-22 01:39',	'11',	4001,	'1'],
 [165,	'29-09-22 01:39',	'11',	4001,	'1'],
 [11,	'29-09-22 01:39',	'11',	3660,	'1'],
 [176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
 [22,	'29-09-22 01:40',	'11',	3660,	'1']]
 
 tabelaDB =  pd.DataFrame(db, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #criando DataFrame do bd
@@ -12,8 +15,8 @@ tabelaDB.plot()
 print(tabelaDB)
 
 #recebe como parâmetro a matriz do nó
-#retorna média
-def mediaNo(db):
+#retornaDataFrame com última ocorrência de cada ID
+def ultimaoOcorrencia(db):
     listaHidrometros = []
     unicaOcorencia = []
     aux = 0
@@ -27,9 +30,31 @@ def mediaNo(db):
             unicaOcorencia.append(hidrometro) 
     aux +=1 
     print(aux)                  
-    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #criando DataFrame do bd    
+    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #dataFrame com a última ocrrência de cada ID
+    return tabelaDB
+
+#retorna a média do nó/ utiliza o dataFrame para isso
+def mediaNo(tabelaDB):
     media = tabelaDB['Litros Utilizados'].median()
     print('A média de litros utilizados é: ', media)
-    return int(media)
-media = mediaNo(db)
-print(media)
+    return media
+
+#bloqueia o hidrômetro por média geral do sistema
+def bloqueioMediaGeral(tabelaDB, mediaGeral):
+    print('bloqueio media geral')    
+    #bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral] #filtramos com a média geral
+    bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral, ['ID']] #aqui irá retornar o ID
+    print(bloqueioTabelaMediaGeral)
+
+#bloqueia hidrômetros por seu teto de gastos
+def bloqueioTetoGasto(tabelaDB, tetoGasto):
+    print('BLOQUEIO TETO DE GASTOS')
+    bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
+    print(bloqueioTabelaTestoGasto)
+    #depois é só pegar as id que foram retornadas
+
+tabelaD  = ultimaoOcorrencia(db)
+mediaGeral = mediaNo(tabelaD)
+bloqueioMediaGeral(tabelaD, mediaGeral)
+bloqueioTetoGasto(tabelaD, 120)
+
