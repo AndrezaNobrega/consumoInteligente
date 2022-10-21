@@ -1,13 +1,14 @@
 import sqlite3
 
 #criação do banco de dados e cursor para explorar banco
+
 banco = sqlite3.connect('consumo_inteligente.db')
 cursor = banco.cursor()
 
 
 #criação de tabela
-cursor.execute("CREATE TABLE hidrometro (id integer, bloqueado boolean)")
-cursor.execute("CREATE TABLE historico (id_hidro integer, data date, hora time, vazao integer")
+cursor.execute("CREATE TABLE hidrometro (id integer, setor integer, bloqueado boolean, motivo varchar, consumo integer)")
+cursor.execute("CREATE TABLE historico (id_hidrometro integer, dataHora datatime, vazao integer, statusVazamento integer, setor integer")
 
 #criar hidrometro
 def criarHidrometro(id):
