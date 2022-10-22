@@ -164,18 +164,24 @@ def publish(client):
             print(f"ERRO FALHA NO ENVIO PARA: {topic}")
             print('Consulte sua rede')
 
-#para o hidrômetro receber informações
+#hidrometro pode ser bloqueado/desbloqeuado
 def subscribe(client: mqtt_client):   
-    def on_message(client, userdata, msg):
-        global hidrometroiD, setor, status
+    def on_message(client, userdata, msg):        
+        global hidrometroiD, setor, status, vazao
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        topico = msg.topic
+        topico, setor = topico.split('/')
         mensagem = msg.payload.decode()
-        if mensagem == 'bloqueado':
-            status = True
-            print('Seu hidrometros foi bloqueado.')
-        else:
-            status = False
-            print('Seu hidrometro foi desbloqueado')
+        acao, id = mensagem.split('/')
+        if id == hidrometroiD: #verifica se a mensagem de bloqueio é para este hidrômetro
+            if acao == 'bloquear':
+                status = True
+                vazao = 0
+                print('Seu hidrometros foi bloqueado.')
+            elif acao == 'desbloquear':
+                status = False
+                print('Seu hidrometro foi desbloqueado')
+                print(mensagem) #teste
     client.subscribe("bloqueio/"+ setor)
     client.on_message = on_message
 

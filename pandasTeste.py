@@ -1,6 +1,64 @@
+import time
 import pandas as pd
 
 db = [[154,	'29-09-22 01:39',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[165,	'29-09-22 01:39',	'11',	4001,	'1'],
+[11,	'29-09-22 01:39',	'11',	3660,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[165,	'29-09-22 01:39',	'11',	4001,	'1'],
+[11,	'29-09-22 01:39',	'11',	3660,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[165,	'29-09-22 01:39',	'11',	4001,	'1'],
+[11,	'29-09-22 01:39',	'11',	3660,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[165,	'29-09-22 01:39',	'11',	4001,	'1'],
+[11,	'29-09-22 01:39',	'11',	3660,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[165,	'29-09-22 01:39',	'11',	4001,	'1'],
+[11,	'29-09-22 01:39',	'11',	3660,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[165,	'29-09-22 01:39',	'11',	4001,	'1'],
+[11,	'29-09-22 01:39',	'11',	3660,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[165,	'29-09-22 01:39',	'11',	4001,	'1'],
+[11,	'29-09-22 01:39',	'11',	3660,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[165,	'29-09-22 01:39',	'11',	4001,	'1'],
+[11,	'29-09-22 01:39',	'11',	3660,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
+[150,	'29-09-22 01:40',	'11',	4005,	'1'],
+[160,	'29-09-22 01:40',	'11',	4006,	'1'],
+[176,	'29-09-22 01:40',	'11',	4001,	'1'],
 [165,	'29-09-22 01:39',	'11',	4001,	'1'],
 [11,	'29-09-22 01:39',	'11',	3660,	'1'],
 [176,	'29-09-22 01:40',	'11',	4001,	'1'],
@@ -24,13 +82,17 @@ def ultimaoOcorrencia(db):
         id = hidrometro[3]        
         if id not in listaHidrometros: 
             listaHidrometros.append(id)
-            unicaOcorencia.append(hidrometro)                             
+            unicaOcorencia.append(hidrometro)
+            print(listaHidrometros)            
+            aux = listaHidrometros.index(id)
         else:
+            aux = listaHidrometros.index(id)
             unicaOcorencia.pop(aux)
             unicaOcorencia.append(hidrometro) 
-    aux +=1 
-    print(aux)                  
+            listaHidrometros.pop(aux)
+            listaHidrometros.append(id)        
     tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #dataFrame com a última ocrrência de cada ID
+    print('PRINT TABELA DB \n',tabelaDB)
     return tabelaDB
 
 #retorna a média do nó/ utiliza o dataFrame para isso
@@ -42,8 +104,8 @@ def mediaNo(tabelaDB):
 #bloqueia o hidrômetro por média geral do sistema
 def bloqueioMediaGeral(tabelaDB, mediaGeral):
     print('bloqueio media geral')    
-    #bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral] #filtramos com a média geral
-    bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral, ['ID']] #aqui irá retornar o ID
+    bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral] #filtramos com a média geral
+    # bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral, ['ID']] #aqui irá retornar o ID
     print(bloqueioTabelaMediaGeral)
 
 #bloqueia hidrômetros por seu teto de gastos

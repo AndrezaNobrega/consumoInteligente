@@ -23,16 +23,20 @@ def ultimaoOcorrencia(db):
     unicaOcorencia = []
     aux = 0
     for hidrometro in db: #para criar uma lista com a última ocorrência daquele hidrômetro
-        id = hidrometro[3]        
+        id = hidrometro[3]    
         if id not in listaHidrometros: 
             listaHidrometros.append(id)
-            unicaOcorencia.append(hidrometro)                             
+            unicaOcorencia.append(hidrometro)
+            print(listaHidrometros)            
+            aux = listaHidrometros.index(id)
         else:
+            aux = listaHidrometros.index(id)
             unicaOcorencia.pop(aux)
             unicaOcorencia.append(hidrometro) 
-    aux +=1 
-    print(aux)                  
+            listaHidrometros.pop(aux)
+            listaHidrometros.append(id)              
     tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #dataFrame com a última ocrrência de cada ID
+    print('PRINT TABELA DB \n',tabelaDB)
     return tabelaDB
 
 #retorna a média do nó/ utiliza o dataFrame para isso
@@ -49,10 +53,16 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral):
     print(bloqueioTabelaMediaGeral)
 
 #bloqueia hidrômetros por seu teto de gastos
-def bloqueioTetoGasto(tabelaDB, tetoGasto):
-    print('BLOQUEIO TETO DE GASTOS')
-    bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
+def bloqueioTetoGasto(tabelaDB, tetoGasto, client):    
+    topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio    
+    print('BLOQUEIO TETO DE GASTOS COM HIDRÔMETROS QUE GASTARAM MAIS QUE ', tetoGasto)
+    bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto, ['ID']] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
     print(bloqueioTabelaTestoGasto)
+    idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
+    for id in idTetoGastos:
+        mensagemBloqueio = 'bloquear/'+ str(id)  
+        print(mensagemBloqueio)     
+        result = client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
     #depois é só pegar as id que foram retornadas
 
 #Conecta-se ao broker
@@ -80,9 +90,9 @@ def recebeHidrometros(client, msg):
         print('hidrometros conectados', nHidrometros , '\n')                  
     mensagem = msg.payload.decode()            
     listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split
-    listaAux.append(listrosUtilizados)
+    listaAux.append(int(listrosUtilizados))
     listaAux.append(dataH)
-    listaAux.append(vazao)
+    listaAux.append(int(vazao))
     listaAux.append(id)
     listaAux.append(vaza)        
     print('\nLitros utilizados: ' + listrosUtilizados)
@@ -102,7 +112,7 @@ def subscribeServer(client: mqtt_client):
     def on_message(client, userdata, msg):
         topico = msg.topic        
         aux, setorHidrometro,  id = topico.split('/')   #pegando qual é o tópico
-        if aux == 'nevoa': #se for o tópico da névoa             
+        if aux == 'nevoa': #aqui vai ser usado para receber mensagens do server            
            print ('TÓPICO DA NEVOA')  
            mensagem = msg.payload.decode()           
            listaNevoa.append(mensagem)
@@ -117,18 +127,21 @@ def subscribeServer(client: mqtt_client):
 #envia para servidor central a média do hidrômetro    
 def publish(client):
     global dado   
-    global setorNevoa    
+    global setorNevoa  
+    global tabelaDB  
     status = 0
     noNevoa = str(random.randint(1024,5000)) #gera id do nó
-    topicoNo = 'NoNevoa/'+ noNevoa  #tópico que conecta com o servidor
-    topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio
+    topicoNo = 'NoNevoa/'+ noNevoa  #tópico que conecta com o servidor    
     while True:
-        dado = []          # quando acaba de enviar, ele limpa a lista
-        time.sleep(3)      #aqui é pra regular a quantidade de tempo que ele vai atualizar  
-        # result = client.publish(topicoNevoa, 'bloqueado') como bloquear o hidrometro
+        print('-'*10)
+        print('-'*10)
+        time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
         if status == 0:
-            print(f"Enviando para Servidor\n")
-            time.sleep(2) 
+            print(f"Enviando para Servidor\n")            
+            tabela = ultimaoOcorrencia(dado)
+            tetoGasto = int(10)
+            bloqueioTetoGasto(tabela, tetoGasto, client)
+            time.sleep(2) #colocar um tempo maior
         else:
             print(f"Erro na rede. Mensagens não estão sendo enviadas para Servidor")  
 
