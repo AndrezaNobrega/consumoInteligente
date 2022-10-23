@@ -16,6 +16,7 @@ nHidrometros = 0
 hidrometrosConectados = []
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
 tetoGasto = 0 #deve ser modificado pela API
+listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
 
 #recebe como parâmetro a matriz do nó
 #retornaDataFrame com última ocorrência de cada ID
@@ -47,34 +48,47 @@ def mediaNo(tabelaDB):
     return media
 
 #bloqueia o hidrômetro por média geral do sistema
-def bloqueioMediaGeral(tabelaDB, mediaGeral):
+def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
+    topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio  
     print('bloqueio media geral')    
-    bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral] #filtramos com a média geral
+    bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral, ['ID']] #filtramos com a média geral
     # bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral, ['ID']] #aqui irá retornar o ID
-    print(bloqueioTabelaMediaGeral)
+    idMediaGeral = bloqueioTabelaMediaGeral['ID'].tolist() #pega a lista dos ID dos hidrômetros que passaram da média geral
+    for id in idMediaGeral:
+        print('Bloqueando por média geral:', id)
+        mensagemBloqueio = 'bloquear/'+ str(id) 
+        client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
+    return idMediaGeral
+
+#médotod para desbloquear os hidrômetros que haviam sido bloqueados no ciclo anterior
+def desbloqueioMedia(listaIdsBloqueados, client):
+    topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio 
+    for id in listaIdsBloqueados:
+        print('Desbloqueando hidrômetros:', id)
+        mensagemBloqueio = 'desbloquear/'+ str(id) 
+        client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
 #bloqueia hidrômetros por seu teto de gastos
 def bloqueioTetoGasto(tabelaDB, tetoGasto, client):    
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio    
     print('BLOQUEIO TETO DE GASTOS COM HIDRÔMETROS QUE GASTARAM MAIS QUE ', tetoGasto)
     bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto, ['ID']] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
-    print(bloqueioTabelaTestoGasto)
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
     for id in idTetoGastos:
-        mensagemBloqueio = 'bloquear/'+ str(id)  
-        print(mensagemBloqueio)     
-        result = client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
-    #depois é só pegar as id que foram retornadas
+        mensagemBloqueio = 'bloquear/'+ str(id) 
+        print('________________________________________________________________________________')  
+        print(mensagemBloqueio)    
+        print('________________________________________________________________________________')  
+        client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
+    return idTetoGastos
 
 #Conecta-se ao broker
-def connect_mqtt() -> mqtt_client:  
-
+def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
             print("Conectado ao broker com sucesso ")
         else:
             print("Erro na conexão %d\n", rc)
-
     client = mqtt_client.Client(client_id)
     client.username_pw_set(username, password)
     client.on_connect = on_connect
@@ -92,7 +106,7 @@ def recebeHidrometros(client, msg):
         print('hidrometros conectados', nHidrometros , '\n')                  
     mensagem = msg.payload.decode()            
     listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split
-    listaAux.append(int(listrosUtilizados))
+    listaAux.append(float(listrosUtilizados))
     listaAux.append(dataH)
     listaAux.append(int(vazao))
     listaAux.append(id)
@@ -107,20 +121,25 @@ def recebeHidrometros(client, msg):
 
 #inscreve-se no tópico do servidor e trata as mensagens, de acordo com o tópico que está sendo recebido
 def subscribeServer(client: mqtt_client): 
-    global dado    
-    global hidrometrosConectados
-    global nHidrometros
-    global tetoGasto
-    listaNevoa = [] 
     def on_message(client, userdata, msg):
+        global dado    
+        global hidrometrosConectados
+        global nHidrometros
+        global listaHidrometrosBloqueados
         topico = msg.topic        
         aux, setorHidrometro,  id = topico.split('/')   #pegando qual é o tópico
-        if aux == 'server': #aqui vai ser usado para receber mensagens do server            
-           print ('TÓPICO SERVER')
-           mensagem = msg.payload.decode()
-           print('____________________')           
-           print(mensagem)         
-
+        if aux == 'server': #aqui vai ser usado para receber mensagens do server  
+           mediaGeral = msg.payload.decode()
+           mediaGeral = int(mediaGeral[:-2]) #tira o ponto e zero
+           if len(listaHidrometrosBloqueados) != 0: #para desbloquear os hidrômetros que já foram bloqueados
+            print('Desbloqueando hidrôometros')
+            desbloqueioMedia(listaHidrometrosBloqueados, client)
+           print('________________________________________________________________________________') 
+           print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
+           print('____________________________________________MEDIA GERAL:', mediaGeral, '________')                  
+           tabela = ultimaoOcorrencia(dado)
+           listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
+           inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
         else: #tópico dos hidrometros
             print('TÓPICO DO HIDRÔMETROS')
             dado = recebeHidrometros(client, msg)
@@ -137,7 +156,7 @@ def publish(client):
     global dado   
     global setorNevoa 
     status = 0
-    topicoNo = 'NoNevoa/'+ setorNevoa  #tópico que conecta com o servidor    
+    topicoNo = 'NoNevoa/media/'+ setorNevoa  #tópico que conecta com o servidor    
     while True:
         print('-'*10)
         print('-'*10)
@@ -147,13 +166,13 @@ def publish(client):
             media = mediaNo(tabela)
             client.publish(topicoNo, media) #envia a média desse nó
             print(f"Enviando para Servidor\n")
-            time.sleep(3) #colocar um tempo maior
+            time.sleep(10) #colocar um tempo maior
         else:
             print(f"Erro na rede. Mensagens não estão sendo enviadas para Servidor")  
 
-#envia para o servido uma mensagem, para que ele saiba da existênia desse setor
+#envia para o servidor o seu setor
 def inicializacao(client):
-    topicoNo = 'NoNevoa/'+ setorNevoa  #tópico que conecta com o servidor  
+    topicoNo = 'NoNevoa/setor/'+ setorNevoa  #tópico que conecta com o servidor  
     client.publish(topicoNo, setorNevoa) #envia a média desse nó
 
 
@@ -167,7 +186,7 @@ def subscribeHidrometros(client: mqtt_client):
 def run():
     client = connect_mqtt()
     inicializacao(client) 
-    client.loop_start()   # type: ignore
+    client.loop_start()  
     subscribeHidrometros(client)
     subscribeServer(client)    
     publish(client)

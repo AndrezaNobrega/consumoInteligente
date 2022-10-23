@@ -67,10 +67,7 @@ db = [[154,	'29-09-22 01:39',	'11',	4001,	'1'],
 [160,	'29-09-22 01:40',	'11',	4006,	'1'],
 [22,	'29-09-22 01:40',	'11',	3660,	'1']]
 
-tabelaDB =  pd.DataFrame(db, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #criando DataFrame do bd
-tabelaDB.plot()
 
-print(tabelaDB)
 
 #recebe como parâmetro a matriz do nó
 #retornaDataFrame com última ocorrência de cada ID
@@ -115,8 +112,8 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto):
     print(bloqueioTabelaTestoGasto)
     #depois é só pegar as id que foram retornadas
 
-tabelaD  = ultimaoOcorrencia(db)
-mediaGeral = mediaNo(tabelaD)
-bloqueioMediaGeral(tabelaD, mediaGeral)
-bloqueioTetoGasto(tabelaD, 120)
+
+numero = ('12556.0')
+numero = numero[:-2]
+print(numero)
 

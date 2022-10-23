@@ -4,13 +4,16 @@ import time
 from paho.mqtt import client as mqtt_client
 
 
+
 broker = 'broker.emqx.io'
 port = 1883
 topic = 'NoNevoa/#'
 client_id = str(random.randint(0, 100))
 username = 'emqx'
 password = 'public'
-dado = []
+nosConectados = []
+listaMedias = []
+listaAuxSetores = []
 
 
 def connect_mqtt() -> mqtt_client:
@@ -29,10 +32,38 @@ def connect_mqtt() -> mqtt_client:
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
-        global dado        
-        mensagem = msg.payload.decode()            
-        dado.append(mensagem) 
-        print(mensagem)
+        global nosConectados
+        global listaMedias
+        global listaAuxSetores
+        topico = msg.topic
+        print (topico)                   
+        *topico, assunto, setor = topico.split('/')   #pegando qual é o tópico
+        if assunto == 'media': #quando recebe medias
+            media = msg.payload.decode()  
+            if setor not in listaAuxSetores:
+                listaAuxSetores.append(setor)                
+                mediaNo = float(media) 
+                print(mediaNo)
+                listaMedias.append(mediaNo)
+                if listaAuxSetores == nosConectados: #aqui verifica se todos os nós inicializados já enviaram suas médias
+                                print('Enviando media geral para hidrometros')
+                                numeroSetores = len(nosConectados)
+                                somatoriaMedias = 0
+                                for media in listaMedias:
+                                    somatoriaMedias+= media
+                                    print(somatoriaMedias)
+                                somatoriaMedias = somatoriaMedias/numeroSetores #aqui para tirarmos a media
+                                print('MEDIA GERAL:', somatoriaMedias)
+                                client.publish("server/media/geral", somatoriaMedias) #envia a media geral de todos os hidrômetros de volta para os nós
+                                listaAuxSetores.clear()
+                              
+        elif assunto == 'setor': #mensagem de inicialização do setor
+            setorNo = msg.payload.decode()
+            if setorNo not in nosConectados:
+                nosConectados.append(setorNo)
+                print(nosConectados)
+        elif assunto == 'maiorOcorrencia':
+            print('Recebendo hidrometros com maiores ocorrencias do setor:', setor)
     client.subscribe(topic)
     client.on_message = on_message
 
@@ -40,12 +71,10 @@ def publish(client):
     global dado 
     status = 0
     topicoServer = "server/media/geral"  #tópico que conecta com o servidor    
-    while True:
-        print('-'*10)
-        print('-'*10)
+    while True:        
         time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
         if status == 0:
-            client.publish(topicoServer, '6') #envia a média desse nó
+            #client.publish(topicoServer, '6') #envia a média desse nó
             print(f"Enviando para Servidor\n")
             time.sleep(3) #colocar um tempo maior
         else:
