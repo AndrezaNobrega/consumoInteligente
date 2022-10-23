@@ -1,4 +1,5 @@
 import random
+import time
 
 from paho.mqtt import client as mqtt_client
 
@@ -9,6 +10,7 @@ topic = 'NoNevoa/#'
 client_id = str(random.randint(0, 100))
 username = 'emqx'
 password = 'public'
+dado = []
 
 
 def connect_mqtt() -> mqtt_client:
@@ -26,25 +28,35 @@ def connect_mqtt() -> mqtt_client:
 
 
 def subscribe(client: mqtt_client):
-    dado = []
-    def on_message(client, userdata, msg):        
+    def on_message(client, userdata, msg):
+        global dado        
         mensagem = msg.payload.decode()            
-        dado.append(mensagem)        
-        listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split        
-        print('\nLitros utilizados: ' + listrosUtilizados)
-        print('\nHorário/Data: ' + dataH)
-        print('\nVazão atual: ' + vazao)
-        print('\n ID:' + id)
-        print('\n Situção de vazamento (0 para vazamento e 1 para não)'+ vaza) 
-
+        dado.append(mensagem) 
+        print(mensagem)
     client.subscribe(topic)
     client.on_message = on_message
+
+def publish(client):
+    global dado 
+    status = 0
+    topicoServer = "server/media/geral"  #tópico que conecta com o servidor    
+    while True:
+        print('-'*10)
+        print('-'*10)
+        time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
+        if status == 0:
+            client.publish(topicoServer, '6') #envia a média desse nó
+            print(f"Enviando para Servidor\n")
+            time.sleep(3) #colocar um tempo maior
+        else:
+            print(f"Erro na rede. Mensagens não estão sendo enviadas para Servidor")  
 
 
 def run():
     client = connect_mqtt()
-    subscribe(client)
-    client.loop_forever()
+    client.loop_start()
+    subscribe(client)        
+    publish(client) 
 
 
 if __name__ == '__main__':

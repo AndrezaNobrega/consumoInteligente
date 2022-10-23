@@ -15,6 +15,7 @@ dado = [] #bd da nuvem
 nHidrometros = 0
 hidrometrosConectados = []
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
+tetoGasto = 0 #deve ser modificado pela API
 
 #recebe como parâmetro a matriz do nó
 #retornaDataFrame com última ocorrência de cada ID
@@ -67,6 +68,7 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto, client):
 
 #Conecta-se ao broker
 def connect_mqtt() -> mqtt_client:  
+
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
             print("Conectado ao broker com sucesso ")
@@ -108,42 +110,51 @@ def subscribeServer(client: mqtt_client):
     global dado    
     global hidrometrosConectados
     global nHidrometros
+    global tetoGasto
     listaNevoa = [] 
     def on_message(client, userdata, msg):
         topico = msg.topic        
         aux, setorHidrometro,  id = topico.split('/')   #pegando qual é o tópico
-        if aux == 'nevoa': #aqui vai ser usado para receber mensagens do server            
-           print ('TÓPICO DA NEVOA')  
-           mensagem = msg.payload.decode()           
-           listaNevoa.append(mensagem)
-           print('Nós: número de hidrômetros conectados')
+        if aux == 'server': #aqui vai ser usado para receber mensagens do server            
+           print ('TÓPICO SERVER')
+           mensagem = msg.payload.decode()
+           print('____________________')           
+           print(mensagem)         
+
         else: #tópico dos hidrometros
             print('TÓPICO DO HIDRÔMETROS')
-            dado = recebeHidrometros(client, msg)        
-    client.subscribe("nevoa/#")          
+            dado = recebeHidrometros(client, msg)
+            #esse trecho do código verifica o tempo todo se os hidrômetros conectados ultrapassaram o valor do teto de gasto
+            if tetoGasto != 0:
+                tabela = ultimaoOcorrencia(dado)
+                bloqueioTetoGasto(tabela, tetoGasto, client)        
+    client.subscribe("server/media/geral")          
     client.on_message = on_message
 
 
 #envia para servidor central a média do hidrômetro    
 def publish(client):
     global dado   
-    global setorNevoa  
-    global tabelaDB  
+    global setorNevoa 
     status = 0
-    noNevoa = str(random.randint(1024,5000)) #gera id do nó
-    topicoNo = 'NoNevoa/'+ noNevoa  #tópico que conecta com o servidor    
+    topicoNo = 'NoNevoa/'+ setorNevoa  #tópico que conecta com o servidor    
     while True:
         print('-'*10)
         print('-'*10)
         time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
         if status == 0:
-            print(f"Enviando para Servidor\n")            
             tabela = ultimaoOcorrencia(dado)
-            tetoGasto = int(10)
-            bloqueioTetoGasto(tabela, tetoGasto, client)
-            time.sleep(2) #colocar um tempo maior
+            media = mediaNo(tabela)
+            client.publish(topicoNo, media) #envia a média desse nó
+            print(f"Enviando para Servidor\n")
+            time.sleep(3) #colocar um tempo maior
         else:
             print(f"Erro na rede. Mensagens não estão sendo enviadas para Servidor")  
+
+#envia para o servido uma mensagem, para que ele saiba da existênia desse setor
+def inicializacao(client):
+    topicoNo = 'NoNevoa/'+ setorNevoa  #tópico que conecta com o servidor  
+    client.publish(topicoNo, setorNevoa) #envia a média desse nó
 
 
 def subscribeHidrometros(client: mqtt_client): 
@@ -155,10 +166,12 @@ def subscribeHidrometros(client: mqtt_client):
 
 def run():
     client = connect_mqtt()
+    inicializacao(client) 
     client.loop_start()   # type: ignore
     subscribeHidrometros(client)
     subscribeServer(client)    
-    publish(client) 
+    publish(client)
+
 
 if __name__ == '__main__':
     run()
