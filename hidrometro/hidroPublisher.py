@@ -4,6 +4,7 @@ from paho.mqtt import client as mqtt_client
 import time
 import hidrometro
 import datetime
+import banco_dados.criarBanco 
 
 # parametros broker
 username = 'emqx'
