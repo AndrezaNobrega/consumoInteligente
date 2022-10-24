@@ -5,12 +5,15 @@ from paho.mqtt import client as mqtt_client
 import time
 import hidrometro
 import datetime
+import banco_dados.criarBanco 
 
 # parametros broker
 username = 'emqx'
 password = 'public'
-broker = 'broker.emqx.io'
+broker = 'localhost'                        #inicializar mosquitto através do cmd
 port = 1883
+
+
 #gerando ID
 hidrometroiD = str(random.randint(1024,5000))
 setor = str(input('Digite o setor do seu hidrometro:'))
