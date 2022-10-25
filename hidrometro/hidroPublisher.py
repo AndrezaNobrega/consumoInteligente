@@ -1,15 +1,15 @@
-from ast import Global
 import random
 import time
 from paho.mqtt import client as mqtt_client
 import time
 import hidrometro
 import datetime
-import banco_dados.criarBanco 
+#import banco_dados.criarBanco 
 
 # parametros broker
+'''broker = 'broker.emqx.io'''
 username = 'emqx'
-password = 'public'
+password = 'public'''
 broker = 'localhost'                        #inicializar mosquitto através do cmd
 port = 1883
 
@@ -22,7 +22,7 @@ topic = 'Hidrometros/'+ setor+'/'+ str(hidrometroiD)
 litroConsumidos = 0
 status = False
 pressao = 1 #aqui é a pressão que está sendo exercida no hidrometro
-hidrometro1 = hidrometro.Hidrometro(hidrometroiD) #cria objeto
+hidrometro1 = hidrometro.Hidrometro(hidrometroiD, setor) #cria objeto
 vazao = 0 #inicializando variável
 pressao = str(random.randint(0,9)) #fica sendo gerado um valor entre 0 e 10, caso esse valor seja zero, significa que há algum problema nos canos
 
@@ -76,11 +76,8 @@ def publish(client):
     global grau  
     global topic  
     while True:
-        if status == False:  
-            print('*'*40)
-            vazao = geraVazao(grau)
-            print('Foi consumido:\n', vazao)
-            print('*'*40)                
+        if status == False:            
+            vazao = geraVazao(grau)                       
             data = getData() #pegando o momento da consumo        
             print('A vazão atual é de:', vazao) 
             litroConsumidos = int(litroConsumidos + vazao)
@@ -90,6 +87,7 @@ def publish(client):
             pressao = str(random.randint(0,9)) #gerando uma pressão 
             vaza = vazamento(pressao)
             infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
+            print('___________','Enviando para a névoa','_______________________________') 
             result = client.publish(topic, infoHidro)
             print(hidrometroiD)
             litroConsumidos = int(litroConsumidos)
@@ -98,9 +96,11 @@ def publish(client):
             statusEnvio = result[0]
         else:
             print('*'*40)
+            print('*'*40)
             print('Seu hidrometro está bloqueado, realize o pagamento.')
             vazao = 0
             print('*'*40)
+            print('*'*40) 
             time.sleep(2)              
             data = getData() #pegando o momento da consumo        
             print('A vazão atual é de:', vazao) 
@@ -111,9 +111,10 @@ def publish(client):
             pressao = str(random.randint(0,9)) #gerando pressao 
             vaza = vazamento(pressao)
             infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
+            print('Enviando para a névoa')
             result = client.publish(topic, infoHidro)
             statusEnvio = result[0]
-            print('______________________________________________________________________') 
+            print('___________','Enviando para a névoa','_______________________________')  
             print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
             print('______________________________________________________________________')                                
             litroConsumidos = int(litroConsumidos)
@@ -121,11 +122,8 @@ def publish(client):
             time.sleep(2)            
             statusEnvio = result[0]                   
         if statusEnvio == 0: #caso esteja enviando
-            if status == False:                     
-                print('*'*40)
-                vazao = geraVazao(grau)
-                print('Foi consumido:\n', vazao)
-                print('*'*40)               
+            if status == False:                
+                vazao = geraVazao(grau)                           
                 data = getData() #pegando o momento da consumo        
                 print('A vazão atual é de:', vazao) 
                 litroConsumidos = int(litroConsumidos + vazao)
@@ -134,9 +132,10 @@ def publish(client):
                 vazao = str(vazao) 
                 vaza = vazamento(pressao)
                 infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
+                print('Enviando para a névoa')
                 result = client.publish(topic, infoHidro) #tópico ta aqui
                 statusEnvio = result[0]
-                print('______________________________________________________________________') 
+                print('___________','Enviando para a névoa','_______________________________') 
                 print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
                 print('______________________________________________________________________')                                
                 litroConsumidos = int(litroConsumidos)
@@ -144,8 +143,10 @@ def publish(client):
                 time.sleep(2)
             else:
                 print('*'*40)
+                print('*'*40)
                 print('Seu hidrometro está bloqueado, realize o pagamento.')
                 vazao = 0
+                print('*'*40)   
                 print('*'*40)            
                 data = getData() #pegando o momento da consumo        
                 print('A vazão atual é de:', vazao) 
@@ -155,9 +156,9 @@ def publish(client):
                 vazao = str(vazao) 
                 vaza = vazamento(pressao)
                 infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
+                print('___________','Enviando para a névoa','_______________________________')                 
                 result = client.publish(topic, infoHidro)
-                statusEnvio = result[0]
-                print('______________________________________________________________________') 
+                statusEnvio = result[0]                
                 print ('\n ID:', id ,'\nLitros utilizados:', litroConsumidos, '\nData do envio:', data, '\nVazão atual:',vazao) #visualização do envio
                 print('______________________________________________________________________')                                
                 litroConsumidos = int(litroConsumidos)
@@ -180,10 +181,18 @@ def subscribe(client: mqtt_client):
             if acao == 'bloquear':
                 status = True
                 vazao = 0
+                print('*'*40)   
+                print('*'*40)
                 print('Seu hidrometros foi bloqueado.')
+                print('*'*40)   
+                print('*'*40)
             elif acao == 'desbloquear':
                 status = False
+                print('*'*40)   
+                print('*'*40)
                 print('Seu hidrometro foi desbloqueado')
+                print('*'*40)   
+                print('*'*40)
                 print(mensagem) #teste
     client.subscribe("bloqueio/"+ setor)
     client.on_message = on_message

@@ -2,13 +2,14 @@ import random
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
-
+from tqdm import tqdm #para a barra de progresso
 
 #parâmetros de conexão com o broker
-broker = 'broker.emqx.io'
+'''broker = 'broker.emqx.io''' #broker público
+broker = 'localhost'
 port = 1883
 username = 'emqx'
-password = 'public'
+password = 'public'''
 #gerando o ID
 client_id = str(random.randint(0, 100))
 dado = [] #bd da nuvem
@@ -31,12 +32,14 @@ def ultimaoOcorrencia(db):
             unicaOcorencia.append(hidrometro)
             print(listaHidrometros)            
             aux = listaHidrometros.index(id)
+            time.sleep(0.1)
         else:
             aux = listaHidrometros.index(id)
             unicaOcorencia.pop(aux)
             unicaOcorencia.append(hidrometro) 
             listaHidrometros.pop(aux)
-            listaHidrometros.append(id)              
+            listaHidrometros.append(id)  
+            time.sleep(0.1)            
     tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #dataFrame com a última ocrrência de cada ID
     print('PRINT TABELA DB \n',tabelaDB)
     return tabelaDB
@@ -52,8 +55,8 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio  
     print('bloqueio media geral')    
     bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral, ['ID']] #filtramos com a média geral
-    # bloqueioTabelaMediaGeral = tabelaDB.loc[tabelaDB['Litros Utilizados'] > mediaGeral, ['ID']] #aqui irá retornar o ID
     idMediaGeral = bloqueioTabelaMediaGeral['ID'].tolist() #pega a lista dos ID dos hidrômetros que passaram da média geral
+    print(idMediaGeral, 'DEVEM SER BLOQUEADOS POR MÉDIA GERAL')
     for id in idMediaGeral:
         print('Bloqueando por média geral:', id)
         mensagemBloqueio = 'bloquear/'+ str(id) 
@@ -98,8 +101,7 @@ def connect_mqtt() -> mqtt_client:
 '''Manipula mensagens recebidas pelo tópico dos hidrômetros'''
 def recebeHidrometros(client, msg):
     listaAux = []
-    idHidro = msg.topic
-    print('Recebendo mensagem', msg.topic)
+    idHidro = msg.topic    
     aux, setorHidrometro ,  id = idHidro.split('/')   #pegando a id do hidrômetro
     if id not in hidrometrosConectados: #conferindo se já existe essa ID na lista
         hidrometrosConectados.append(id)                
@@ -110,14 +112,22 @@ def recebeHidrometros(client, msg):
     listaAux.append(dataH)
     listaAux.append(int(vazao))
     listaAux.append(id)
-    listaAux.append(vaza)        
+    listaAux.append(vaza)  
+    print('\n')  
+    print('\n---- ID:' + id, '---------------------------------------------------')    
     print('\nLitros utilizados: ' + listrosUtilizados)
     print('\nHorário/Data: ' + dataH)
-    print('\nVazão atual: ' + vazao)
-    print('\n ID:' + id)
-    print('\n Situção de vazamento (0 para vazamento e 1 para não)'+ vaza , '\n')
+    print('\nVazão atual: ' + vazao)    
+    print('\n Situção de vazamento (0 para vazamento e 1 para não):'+ vaza , '\n')
+    print('\n') 
     dado.append(listaAux)
     return dado 
+
+#esse método serve para o servidor central verificar se todos os nós conectados enviaram suas médias, para que assim ele consiga calcular a média geral de forma correta
+# ao inicializar ele envia, e ao receber a média também, pois o ciclo está se reiniciando.
+def inicializacao(client):
+    topicoNo = 'NoNevoa/setor/'+ setorNevoa  #tópico que conecta com o servidor  
+    client.publish(topicoNo, setorNevoa) #envia a média desse nó
 
 #inscreve-se no tópico do servidor e trata as mensagens, de acordo com o tópico que está sendo recebido
 def subscribeServer(client: mqtt_client): 
@@ -129,19 +139,33 @@ def subscribeServer(client: mqtt_client):
         topico = msg.topic        
         aux, setorHidrometro,  id = topico.split('/')   #pegando qual é o tópico
         if aux == 'server': #aqui vai ser usado para receber mensagens do server  
-           mediaGeral = msg.payload.decode()
-           mediaGeral = int(mediaGeral[:-2]) #tira o ponto e zero
-           if len(listaHidrometrosBloqueados) != 0: #para desbloquear os hidrômetros que já foram bloqueados
-            print('Desbloqueando hidrôometros')
-            desbloqueioMedia(listaHidrometrosBloqueados, client)
-           print('________________________________________________________________________________') 
-           print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
-           print('____________________________________________MEDIA GERAL:', mediaGeral, '________')                  
-           tabela = ultimaoOcorrencia(dado)
-           listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
-           inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
+            print('________________________________________________________________________________') 
+            print('--------------------------Tópico servidor  ------------------------------------') 
+            print('_______________________________________________________________________________')  
+            mediaGeral = msg.payload.decode()
+            mediaGeral = int(mediaGeral[:-2]) #tira o ponto e zero
+            if len(listaHidrometrosBloqueados) != 0: #para desbloquear os hidrômetros que já foram bloqueados
+                print('________________________________________________________________________________') 
+                print('--------------------------Desbloqueio do ciclo anterior-------------------------') 
+                print('________________________________________________________________________________')  
+                desbloqueioMedia(listaHidrometrosBloqueados, client)
+                print('________________________________________________________________________________') 
+                print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
+                print('____________________________________________MEDIA GERAL:', mediaGeral, '________')                  
+                tabela = ultimaoOcorrencia(dado)
+                listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
+                inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
+            else:
+                print('________________________________________________________________________________') 
+                print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
+                print('____________________________________________MEDIA GERAL:', mediaGeral, '________') 
+                tabela = ultimaoOcorrencia(dado)
+                listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
+                inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
         else: #tópico dos hidrometros
-            print('TÓPICO DO HIDRÔMETROS')
+            #print('________________________________________________________________________________') 
+            #print('--------------------------Tópico hidrômetros------------------------------------') 
+            #print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
             #esse trecho do código verifica o tempo todo se os hidrômetros conectados ultrapassaram o valor do teto de gasto
             if tetoGasto != 0:
@@ -150,7 +174,6 @@ def subscribeServer(client: mqtt_client):
     client.subscribe("server/media/geral")          
     client.on_message = on_message
 
-
 #envia para servidor central a média do hidrômetro    
 def publish(client):
     global dado   
@@ -158,8 +181,6 @@ def publish(client):
     status = 0
     topicoNo = 'NoNevoa/media/'+ setorNevoa  #tópico que conecta com o servidor    
     while True:
-        print('-'*10)
-        print('-'*10)
         time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
         if status == 0:
             tabela = ultimaoOcorrencia(dado)
@@ -168,13 +189,7 @@ def publish(client):
             print(f"Enviando para Servidor\n")
             time.sleep(10) #colocar um tempo maior
         else:
-            print(f"Erro na rede. Mensagens não estão sendo enviadas para Servidor")  
-
-#envia para o servidor o seu setor
-def inicializacao(client):
-    topicoNo = 'NoNevoa/setor/'+ setorNevoa  #tópico que conecta com o servidor  
-    client.publish(topicoNo, setorNevoa) #envia a média desse nó
-
+            print(f"Erro na rede. Mensagens não estão sendo enviadas para Servidor") 
 
 def subscribeHidrometros(client: mqtt_client): 
     def on_message(client, userdata, msg):           
@@ -190,7 +205,6 @@ def run():
     subscribeHidrometros(client)
     subscribeServer(client)    
     publish(client)
-
 
 if __name__ == '__main__':
     run()
