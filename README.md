@@ -13,6 +13,7 @@
 - [Hidrômetro](#Hidrômetro)
 - [Servidor](#Servidor)
 - [Nó](#Nó)
+- [Banco de dados](#banco)
 - [Tela do usuário](#Usuário)
 - [Tela do administrador](#Administrador)
 - [API REST](#APIREST)
