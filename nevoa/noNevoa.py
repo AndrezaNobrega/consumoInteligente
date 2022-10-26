@@ -1,8 +1,12 @@
+import imp
+from operator import imod
 import random
+from webbrowser import BackgroundBrowser
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
 from tqdm import tqdm #para a barra de progresso
+from banco_dados.manipularBanco import *
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
@@ -10,8 +14,10 @@ broker = 'localhost'
 port = 1883
 username = 'emqx'
 password = 'public'''
+
 #gerando o ID
 client_id = str(random.randint(0, 100))
+manipularBanco.criarBDSetor(client_id)              #criar banco de dados do nó (setor) caso não exista
 dado = [] #bd da nuvem
 nHidrometros = 0
 hidrometrosConectados = []
@@ -58,6 +64,7 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
     idMediaGeral = bloqueioTabelaMediaGeral['ID'].tolist() #pega a lista dos ID dos hidrômetros que passaram da média geral
     print(idMediaGeral, 'DEVEM SER BLOQUEADOS POR MÉDIA GERAL')
     for id in idMediaGeral:
+        manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
         print('Bloqueando por média geral:', id)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
@@ -68,6 +75,7 @@ def desbloqueioMedia(listaIdsBloqueados, client):
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio 
     for id in listaIdsBloqueados:
         print('Desbloqueando hidrômetros:', id)
+        manipularBanco.desbloquearStatusHidrometro_Media(id,setorNevoa)
         mensagemBloqueio = 'desbloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
@@ -153,7 +161,7 @@ def subscribeServer(client: mqtt_client):
                 print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
                 print('____________________________________________MEDIA GERAL:', mediaGeral, '________')                  
                 tabela = ultimaoOcorrencia(dado)
-                listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
+                listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)
                 inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
             else:
                 print('________________________________________________________________________________') 
@@ -163,9 +171,9 @@ def subscribeServer(client: mqtt_client):
                 listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
                 inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
         else: #tópico dos hidrometros
-            #print('________________________________________________________________________________') 
-            #print('--------------------------Tópico hidrômetros------------------------------------') 
-            #print('_______________________________________________________________________________')  
+            print('________________________________________________________________________________') 
+            print('--------------------------Tópico hidrômetros------------------------------------') 
+            print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
             #esse trecho do código verifica o tempo todo se os hidrômetros conectados ultrapassaram o valor do teto de gasto
             if tetoGasto != 0:
