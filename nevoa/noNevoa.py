@@ -179,7 +179,13 @@ def subscribeServer(client: mqtt_client):
             #esse trecho do código verifica o tempo todo se os hidrômetros conectados ultrapassaram o valor do teto de gasto
             if tetoGasto != 0:
                 tabela = ultimaoOcorrencia(dado)
-                bloqueioTetoGasto(tabela, tetoGasto, client)        
+                bloqueioTetoGasto(tabela, tetoGasto, client)  
+            '''Nessa parte de teto de gastos, eh pra retornar a lista e ir verificando se ele ainda ultrapassou, se o teto está maior que a média, eu posso desbloquear
+            
+            
+            
+            
+            modificar aqui'''      
     client.subscribe("server/media/geral")          
     client.on_message = on_message
 
