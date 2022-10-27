@@ -4,7 +4,7 @@ from paho.mqtt import client as mqtt_client
 import time
 import hidrometro
 import datetime
-#import banco_dados.criarBanco 
+#from nevoa.manipularBanco import manipularBanco
 
 # parametros broker
 '''broker = 'broker.emqx.io'''
@@ -18,17 +18,19 @@ port = 1883
 hidrometroiD = str(random.randint(1024,5000))
 setor = str(input('Digite o setor do seu hidrometro:'))
 topic = 'Hidrometros/'+ setor+'/'+ str(hidrometroiD) 
+
 #variáveis p inicialização do hidrômetro
 litroConsumidos = 0
 status = False
 pressao = 1 #aqui é a pressão que está sendo exercida no hidrometro
 hidrometro1 = hidrometro.Hidrometro(hidrometroiD, setor) #cria objeto
+#manipularBanco.criarHidrometro(id,setor)
 vazao = 0 #inicializando variável
 pressao = str(random.randint(0,9)) #fica sendo gerado um valor entre 0 e 10, caso esse valor seja zero, significa que há algum problema nos canos
 
 '''Ao inicializar o hidrometro, precisamos inserir se ele terá um alto, baixo ou médio grau de gasto, a partir daí será gerado pelo próprio hidrometro
 com base na sua faixa de gasto'''
-grau = input('Digite o grau do gasto para o hidrometro [1] para baixo \n [2] para médio \n [3] para alto \n Digite aqui:')
+grau = input('Digite o grau do gasto para o hidrometro:\n [1] para baixo \n [2] para médio \n [3] para alto \n Digite aqui:')
 
 def getData():
         data = datetime.datetime.now() #pega o horário atual

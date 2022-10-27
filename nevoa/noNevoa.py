@@ -1,8 +1,12 @@
+import imp
+from operator import imod
 import random
+from webbrowser import BackgroundBrowser
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
 from tqdm import tqdm #para a barra de progresso
+import manipularBanco 
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
@@ -10,12 +14,14 @@ broker = 'localhost'
 port = 1883
 username = 'emqx'
 password = 'public'''
+
 #gerando o ID
 client_id = str(random.randint(0, 100))
 dado = [] #bd da nuvem
 nHidrometros = 0
 hidrometrosConectados = []
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
+manipularBanco.criarBDSetor(setorNevoa)              #criar banco de dados do nó (setor) caso não exista
 tetoGasto = 0 #deve ser modificado pela API
 listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
 
@@ -59,6 +65,7 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
     print(idMediaGeral, 'DEVEM SER BLOQUEADOS POR MÉDIA GERAL')
     for id in idMediaGeral:
         print('Bloqueando por média geral:', id)
+        manipularBanco.bloquearStatusHidrometro_MediabloquearStatusHidrometro_Media(id, setorNevoa)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
     return idMediaGeral
@@ -68,6 +75,7 @@ def desbloqueioMedia(listaIdsBloqueados, client):
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio 
     for id in listaIdsBloqueados:
         print('Desbloqueando hidrômetros:', id)
+        manipularBanco.desbloquearStatusHidrometro_Media(id,setorNevoa)
         mensagemBloqueio = 'desbloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
@@ -78,6 +86,7 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto, client):
     bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto, ['ID']] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
     for id in idTetoGastos:
+        manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         print('________________________________________________________________________________')  
         print(mensagemBloqueio)    
@@ -153,7 +162,7 @@ def subscribeServer(client: mqtt_client):
                 print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
                 print('____________________________________________MEDIA GERAL:', mediaGeral, '________')                  
                 tabela = ultimaoOcorrencia(dado)
-                listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
+                listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)
                 inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
             else:
                 print('________________________________________________________________________________') 
