@@ -7,7 +7,7 @@ def criarBDSetor(nomeSetor):
         banco = sqlite3.connect(nomeArquivo)
         cursor = banco.cursor()
 
-        cursor.execute("CREATE TABLE hidrometro (id integer, setor integer, bloqueado boolean, motivo varchar, consumo integer)")
+        cursor.execute("CREATE TABLE hidrometros (id integer, setor integer, bloqueado boolean, motivo varchar, consumo integer)")
         banco.commit()
         banco.close()
         print("Setor criado! Conexão com sucesso!")
@@ -22,8 +22,10 @@ def criarHidrometro(id,setor):
     banco = sqlite3.connect(nomeArquivo)
     cursor = banco.cursor()
 
+    nome_historicoBanco = id+"hidro_historico.db"
+
     cursor.execute("INSERT INTO hidrometros (id, setor, bloqueado, motivo, consumo) VALUES(?,?,?,?,?)",(id, setor, False, "", 0))
-    cursor.execute("CREATE TABLE historico (id_hidrometro integer, dataHora datatime, vazao integer, statusVazamento boolean, setor integer")
+    cursor.execute("CREATE TABLE ? (id_hidrometro integer, dataHora datatime, vazao integer, statusVazamento boolean, setor integer",(nome_historicoBanco,))
     banco.commit()
     banco.close()
 
@@ -69,7 +71,6 @@ def bloquearStatusHidrometro_Media(id, setor):
     banco = sqlite3.connect(nomeArquivo)
     cursor = banco.cursor()
 
-
     cursor.execute("""UPDATE hidrometros SET bloqueado = True, motivo = 'media' WHERE id = ?""",(id,))
 
     banco.commit()
@@ -87,13 +88,14 @@ def desbloquearStatusHidrometro_Media(id, setor):
     banco.commit()
     banco.close()
 
+
 #mostrar bd na tela na tela
 def mostrarBDTela(setor):
     nomeArquivo = setor+"_setor.db"  
     banco = sqlite3.connect(nomeArquivo)
     cursor = banco.cursor()
 
-    cursor.execute('SELECT * FROM hidrometro')
+    cursor.execute('SELECT * FROM hidrometros')
     print(cursor.fetchall())
 
     banco.close()

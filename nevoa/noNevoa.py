@@ -6,7 +6,7 @@ from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
 from tqdm import tqdm #para a barra de progresso
-from banco_dados.manipularBanco import *
+import manipularBanco 
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
@@ -17,11 +17,11 @@ password = 'public'''
 
 #gerando o ID
 client_id = str(random.randint(0, 100))
-manipularBanco.criarBDSetor(client_id)              #criar banco de dados do nó (setor) caso não exista
 dado = [] #bd da nuvem
 nHidrometros = 0
 hidrometrosConectados = []
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
+manipularBanco.criarBDSetor(setorNevoa)              #criar banco de dados do nó (setor) caso não exista
 tetoGasto = 0 #deve ser modificado pela API
 listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
 
@@ -64,8 +64,8 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
     idMediaGeral = bloqueioTabelaMediaGeral['ID'].tolist() #pega a lista dos ID dos hidrômetros que passaram da média geral
     print(idMediaGeral, 'DEVEM SER BLOQUEADOS POR MÉDIA GERAL')
     for id in idMediaGeral:
-        manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
         print('Bloqueando por média geral:', id)
+        manipularBanco.bloquearStatusHidrometro_MediabloquearStatusHidrometro_Media(id, setorNevoa)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
     return idMediaGeral
@@ -86,6 +86,7 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto, client):
     bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto, ['ID']] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
     for id in idTetoGastos:
+        manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         print('________________________________________________________________________________')  
         print(mensagemBloqueio)    
