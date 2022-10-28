@@ -94,6 +94,7 @@ def publish(client):
             vazao = int(vazao)          
             # result: [0, 1]
             statusEnvio = result[0]
+            time.sleep(2)
         else:
             print('*'*40)
             print('*'*40)
