@@ -1,4 +1,5 @@
 import random
+from api.py.api import teto
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
@@ -138,46 +139,52 @@ def subscribeServer(client: mqtt_client):
         global listaHidrometrosBloqueados
         topico = msg.topic        
         aux, setorHidrometro,  id = topico.split('/')   #pegando qual é o tópico
-        if aux == 'server': #aqui vai ser usado para receber mensagens do server  
+        if aux == 'server': #verfica a mensagem foi recebida pelo server
             print('________________________________________________________________________________') 
             print('--------------------------Tópico servidor  ------------------------------------') 
             print('_______________________________________________________________________________')  
-            mediaGeral = msg.payload.decode()
-            mediaGeral = int(mediaGeral[:-2]) #tira o ponto e zero
-            if len(listaHidrometrosBloqueados) != 0: #para desbloquear os hidrômetros que já foram bloqueados
-                print('________________________________________________________________________________') 
-                print('--------------------------Desbloqueio do ciclo anterior-------------------------') 
-                print('________________________________________________________________________________')  
-                desbloqueioMedia(listaHidrometrosBloqueados, client)
-                print('________________________________________________________________________________') 
-                print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
-                print('____________________________________________MEDIA GERAL:', mediaGeral, '________')                  
+            if id == 'media': 
+                mediaGeral = msg.payload.decode()
+                mediaGeral = int(mediaGeral[:-2]) #tira o ponto e zero
+                if len(listaHidrometrosBloqueados) != 0: #para desbloquear os hidrômetros que já foram bloqueados
+                    print('________________________________________________________________________________') 
+                    print('--------------------------Desbloqueio do ciclo anterior-------------------------') 
+                    print('________________________________________________________________________________')  
+                    desbloqueioMedia(listaHidrometrosBloqueados, client)
+                    print('________________________________________________________________________________') 
+                    print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
+                    print('____________________________________________MEDIA GERAL:', mediaGeral, '________')                  
+                    tabela = ultimaoOcorrencia(dado)
+                    listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
+                    inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
+                else:
+                    print('________________________________________________________________________________') 
+                    print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
+                    print('____________________________________________MEDIA GERAL:', mediaGeral, '________') 
+                    tabela = ultimaoOcorrencia(dado)
+                    listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
+                    inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
+            elif id == 'teto':
+                teto = msg.payload.decode()
+                print('O teto de gastos foi alterado para', teto)
+                tetoGasto = teto
                 tabela = ultimaoOcorrencia(dado)
-                listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
-                inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
-            else:
-                print('________________________________________________________________________________') 
-                print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
-                print('____________________________________________MEDIA GERAL:', mediaGeral, '________') 
-                tabela = ultimaoOcorrencia(dado)
-                listaHidrometrosBloqueados = bloqueioMediaGeral(tabela, mediaGeral, client)           
-                inicializacao(client) #após bloquear os hidrômetros, ele envia de novo para recomeçar o ciclo
+                listaHidrometrosBloqueados = bloqueioTetoGasto(tabela, tetoGasto, client) #quando recebe o novo teto de gastos, ele puxa a tabela de ocorrências dos hidrômetros. A partir daí, já acontece  bloqueio
+                #todos os hidrômetros que foram bloqueados, são add à lista de hidrômetros bloqueados, para que a cada ciclo ocorra a verficação
+               
+
         else: #tópico dos hidrometros
             print('________________________________________________________________________________') 
             print('--------------------------Tópico hidrômetros------------------------------------') 
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
             #esse trecho do código verifica o tempo todo se os hidrômetros conectados ultrapassaram o valor do teto de gasto
-            if tetoGasto != 0:
+            if tetoGasto != 0: #0 é o valor de inicialização, portanto aqui estamos verificando se foi alterado ou não. Se ele já foi alterado, o bloqueio pelo teto já ocorre assim que recebe o hidrômetro
                 tabela = ultimaoOcorrencia(dado)
-                bloqueioTetoGasto(tabela, tetoGasto, client)  
-            '''Nessa parte de teto de gastos, eh pra retornar a lista e ir verificando se ele ainda ultrapassou, se o teto está maior que a média, eu posso desbloquear
-            
-            
-            
-            
-            modificar aqui'''      
-    client.subscribe("server/media/geral")          
+                listaHidrometrosBloqueados = bloqueioTetoGasto(tabela, tetoGasto, client)  
+                
+               
+    client.subscribe("server/geral/#")          
     client.on_message = on_message
 
 #envia para servidor central a média do hidrômetro    
@@ -195,7 +202,7 @@ def publish(client):
             print(f"Enviando para Servidor\n")
             time.sleep(10) #colocar um tempo maior
         else:
-            print(f"Erro na rede. Mensagens não estão sendo enviadas para Servidor") 
+            print(f"Erro na rede. Mensagens não estão sendo enviadas.") 
 
 def subscribeHidrometros(client: mqtt_client): 
     def on_message(client, userdata, msg):           

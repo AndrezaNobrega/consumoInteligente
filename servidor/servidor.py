@@ -105,13 +105,14 @@ def subscribeAPI(client: mqtt_client):
             if setor == 'teto':
                 teto = msg.payload.decode()
                 print('O novo teto é:', teto)
+                client.publish("server/geral/teto", teto) #envia a media geral de todos os hidrômetros de volta para os nós
     client.subscribe('api/#') 
     client.on_message = on_message 
 
 def publish(client):
     global dado 
     status = 0
-    topicoServer = "server/media/geral"  #tópico que conecta com o servidor    
+    topicoServer = "server/geral/media"  #tópico que conecta com o servidor    
     while True:        
         time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
         if status == 0:

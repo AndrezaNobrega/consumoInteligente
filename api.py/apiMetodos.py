@@ -1,14 +1,15 @@
 import random
 import time
-
 from paho.mqtt import client as mqtt_client
+
+
 
 
 #broker = 'broker.emqx.io'
 broker = 'localhost'  
 port = 1883
 
-client_id = random.randint(0, 1000)
+client_id =str(random.randint(0, 1000))
 username = 'emqx'
 password = 'public'
 
@@ -25,9 +26,12 @@ def connect_mqtt():
     client.connect(broker, port)
     return client
 
-client = connect_mqtt()   
-def enviaTeto():         
-    teto = input('Digite aqui o teto de gastos que deseja estabelecer')
-    result = client.publish("api/teto", str(teto))
+client = connect_mqtt() 
 
-enviaTeto()
+def enviaTetoMetodo(teto):
+    result = client.publish("api/teto", str(teto))
+    status = result[0]
+    if status == 0:
+        return 'Enviado com sucesso'
+    else:
+        return 'Falha no envio'

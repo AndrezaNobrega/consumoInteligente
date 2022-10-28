@@ -1,10 +1,11 @@
+from apiMetodos import *
 from flask import Flask, jsonify
 app = Flask(__name__)
 '''rotas adm'''
 
 
 
-@app.route('/exemplo', methods=['GET'])  #endpoint
+'''@app.route('/exemplo', methods=['GET'])  #endpoint
 def exemplo():
     #primeiro vamos enviar a requisição para o bd via mqtt
     #a gente vai recever a resposta e transformar em json
@@ -41,23 +42,27 @@ def debito(setor, id):
     #a gente vai receber a resposta e transformar em json
     #dessa maneira # jsonify(resposta)
     return 'resposta'
+'''
 
 
-@app.route('/<str:setor>/<str:id>', methods=['GET'])  #selecionar um hidrômetro para visualizar suas informações em tempo real
-def list(setor, id):
-    #envia requisição para a névoa com base no seu setor
-    #bd daquele nó pesquisa o id e retorna a lista
-    #pode se inscrever no tópico daquele hidrômetro (testar)
-    return jsonify(user)
 
 
-@app.route('/<int:teto>', methods=['PUT'])  #enviar o teto de gastos para o servidor geral
-def teto(teto):
-    #envia requisição com o teto de gastos para o servidor geral
-    #o servidor geral deve enviar para todos os nós
-    return jsonify(user)
 
 
+'''@app.route('/setor/<int:id>', methods=['GET'])  #selecionar um hidrômetro para visualizar suas informações em tempo real
+def dadoHidro(setor, id):
+    retorno = setor+id
+    s = input(str('Digite aqui o setor do hidrômetro que deseja consultar:'))
+    h = input(str('Digite aqui a ID hidrômetro que deseja consultar:'))
+    infoHidro(client,s, h)
+    return jsonify(retorno)'''
+
+@app.route('/teto/<int:teto>', methods=['PATCH'])  #enviar teto para todos os nós
+def teto(teto): 
+    retorno = enviaTetoMetodo(teto) #o método retorna se foi enviado com sucesso para o broker
+    return jsonify(retorno) #transformando a resposta em JSON
+
+'''
 @app.route('/<str:setor>/<str:id>', methods=['POST'])  #bloqueia hidrômetro
 def bloquear(setor, id):
     #aqui chamamos método já exisente no nó
@@ -65,11 +70,8 @@ def bloquear(setor, id):
     return jsonify(user)
 
 
-'''
+                    ###rotas usuário
 
-                    rotas usuário
-                    
-                                                          '''
 
 
 @app.route('historico/<str:setor>/<str:id>',  methods=['GET'])  #visualizar histórico daquele usuário
@@ -104,7 +106,7 @@ def list(id):
     for user in db:
         if id == user.id():
             return jsonify(user)
-
+'''
 
 #aqui quando a gente for bloquear um hidrômetro
 #@app.route('/bloquear/<str:id>', methods =['POST'])
@@ -113,7 +115,7 @@ def list(id):
 
 #inicializando a API
 if __name__ == "__main__":
-    app.run(host='0.0.0.0')
+    app.run()
 '''Aqui a gente vai ver como fazer as requisições
 import requests
 link = https://desenvolvendo-APi.andrezanobrega.repl.co (do exemplo acima)

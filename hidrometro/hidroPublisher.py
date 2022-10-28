@@ -65,7 +65,7 @@ def connect_mqtt():
     return client
 
 '''Primeiro, definimos um loop de tempo.
-Neste loop, e definiremos a função cliente MQTT para enviar mensagens para o tópico a cada segundo'''
+Neste loop, e definimos a função cliente MQTT para enviar mensagens para o tópico a cada segundo'''
 def publish(client):
     global litroConsumidos
     vaza = 0
