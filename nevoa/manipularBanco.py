@@ -18,16 +18,21 @@ def criarBDSetor(nomeSetor):
 
 #criar hidrometro no banco
 def criarHidrometro(id,setor):
-    nomeArquivo = setor+"_setor.db"  
-    banco = sqlite3.connect(nomeArquivo)
-    cursor = banco.cursor()
+    try:
+        nomeArquivo = setor+"_setor.db"  
+        banco = sqlite3.connect(nomeArquivo)
+        cursor = banco.cursor()
 
-    nome_historicoBanco = id+"hidro_historico.db"
+        nome_historico = id+"_hidroHistorico"
 
-    cursor.execute("INSERT INTO hidrometros (id, setor, bloqueado, motivo, consumo) VALUES(?,?,?,?,?)",(id, setor, False, "", 0))
-    cursor.execute("CREATE TABLE ? (id_hidrometro integer, dataHora datatime, vazao integer, statusVazamento boolean, setor integer",(nome_historicoBanco,))
-    banco.commit()
-    banco.close()
+        cursor.execute("INSERT INTO hidrometros (id, setor, bloqueado, motivo, consumo) VALUES(?,?,?,?,?)",(id, setor, False, "", 0))
+        cursor.execute("CREATE TABLE ? (id_hidrometro integer, dataHora datatime, vazao integer, statusVazamento boolean, setor integer)",(nome_historico))
+        #cursor.execute("CREATE TABLE {} (id_hidrometro integer, dataHora datatime, vazao integer, statusVazamento boolean, setor integer)".format(nome_historico))
+
+        banco.commit()
+        banco.close()
+    except:
+
 
 
 """#atualizar status para falso onde vazão é maior que digitado por adm ou por débito em aberto, colocar variável referente ao motivo do bloqueio 
