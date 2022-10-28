@@ -7,9 +7,8 @@ from paho.mqtt import client as mqtt_client
 #broker = 'broker.emqx.io'
 broker = 'localhost'  
 port = 1883
-topic = "api/teto"
-# generate client ID with pub prefix randomly
-client_id = f'python-mqtt-{random.randint(0, 1000)}'
+
+client_id = random.randint(0, 1000)
 username = 'emqx'
 password = 'public'
 
@@ -26,27 +25,9 @@ def connect_mqtt():
     client.connect(broker, port)
     return client
 
+client = connect_mqtt()   
+def enviaTeto():         
+    teto = input('Digite aqui o teto de gastos que deseja estabelecer')
+    result = client.publish("api/teto", str(teto))
 
-def publish(client):
-    msg_count = 0
-    while True:
-        time.sleep(1)
-        msg = f"messages: {msg_count}"
-        result = client.publish("api/teto", msg)
-        # result: [0, 1]
-        status = result[0]
-        if status == 0:
-            print(f"Send `{msg}` to topic `{topic}`")
-        else:
-            print(f"Failed to send message to topic {topic}")
-        msg_count += 1
-
-
-def run():
-    client = connect_mqtt()
-    client.loop_start()
-    publish(client)
-
-
-if __name__ == '__main__':
-    run()
+enviaTeto()
