@@ -6,6 +6,7 @@ class Hidrometro: #construtor
         self.setor = setor
         self.motivoBloqueio = ""
         self.consumoTotal = 0
+        self.pagamento = True
 
     def getId(self): #retorna ID
         id = str(self.id)
@@ -22,3 +23,6 @@ class Hidrometro: #construtor
     
     def getConsumoTotal(self):
         return self.consumoTotal
+    
+    def getPagamento(self):
+        return self.pagamento
