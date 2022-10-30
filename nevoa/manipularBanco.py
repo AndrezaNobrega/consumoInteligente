@@ -66,7 +66,7 @@ def desbloquearStatusHidrometro_debito(id, setor):
 #ALTERAÇÃO POR MÉDIA  -------------------------------------------------------------------
 
 #atualizar status para falso onde vazão é maior que digitado por adm ou por débito em aberto, colocar variável referente ao motivo do bloqueio 
-def bloquearStatusHidrometro_media(id, setor):
+def bloquearStatusHidrometro_Media(id, setor):
     nomeArquivo = setor+"_setor.db"  
     banco = sqlite3.connect(nomeArquivo)
     cursor = banco.cursor()
