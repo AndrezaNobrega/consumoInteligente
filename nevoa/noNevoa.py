@@ -1,9 +1,12 @@
+import imp
+from operator import imod
 import random
 from api.py.api import teto
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
 from tqdm import tqdm #para a barra de progresso
+import manipularBanco 
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
@@ -11,12 +14,14 @@ broker = 'localhost'
 port = 1883
 username = 'emqx'
 password = 'public'''
+
 #gerando o ID
 client_id = str(random.randint(0, 100))
 dado = [] #bd da nuvem
 nHidrometros = 0
 hidrometrosConectados = []
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
+manipularBanco.criarBDSetor(setorNevoa)              #criar banco de dados do nó (setor) caso não exista
 tetoGasto = 0 #deve ser modificado pela API
 listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
 
@@ -60,6 +65,8 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
     print(idMediaGeral, 'DEVEM SER BLOQUEADOS POR MÉDIA GERAL')
     for id in idMediaGeral:
         print('Bloqueando por média geral:', id)
+        manipularBanco.bloquearStatusHidrometro_Media(id, setorNevoa)
+        manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por media geral",vazao_aux)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
     return idMediaGeral
@@ -69,6 +76,8 @@ def desbloqueioMedia(listaIdsBloqueados, client):
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio 
     for id in listaIdsBloqueados:
         print('Desbloqueando hidrômetros:', id)
+        manipularBanco.desbloquearStatusHidrometro_Media(id,setorNevoa)
+        manipularBanco.gerarHistorico(id,setorNevoa,"Desbloqueado",vazao_aux)
         mensagemBloqueio = 'desbloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
@@ -79,6 +88,8 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto, client):
     bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto, ['ID']] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
     for id in idTetoGastos:
+        manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
+        manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por teto de gasto",vazao_aux)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         print('________________________________________________________________________________')  
         print(mensagemBloqueio)    
@@ -101,12 +112,15 @@ def connect_mqtt() -> mqtt_client:
 
 '''Manipula mensagens recebidas pelo tópico dos hidrômetros'''
 def recebeHidrometros(client, msg):
+    global vazao_aux 
+   
     listaAux = []
     idHidro = msg.topic    
     aux, setorHidrometro ,  id = idHidro.split('/')   #pegando a id do hidrômetro
     if id not in hidrometrosConectados: #conferindo se já existe essa ID na lista
         hidrometrosConectados.append(id)                
-        print('hidrometros conectados', nHidrometros , '\n')                  
+        print('hidrometros conectados', nHidrometros , '\n') 
+        manipularBanco.criarHidrometro(id,setorNevoa)                 
     mensagem = msg.payload.decode()            
     listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split
     listaAux.append(float(listrosUtilizados))
@@ -122,6 +136,10 @@ def recebeHidrometros(client, msg):
     print('\n Situção de vazamento (0 para vazamento e 1 para não):'+ vaza , '\n')
     print('\n') 
     dado.append(listaAux)
+
+    vazao_aux = vazao
+    manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao)
+    manipularBanco.salvarConsumoTotal(id,setorNevoa,listrosUtilizados)
     return dado 
 
 #esse método serve para o servidor central verificar se todos os nós conectados enviaram suas médias, para que assim ele consiga calcular a média geral de forma correta
@@ -172,7 +190,7 @@ def subscribeServer(client: mqtt_client):
                 listaHidrometrosBloqueados = bloqueioTetoGasto(tabela, tetoGasto, client) #quando recebe o novo teto de gastos, ele puxa a tabela de ocorrências dos hidrômetros. A partir daí, já acontece  bloqueio
                 #todos os hidrômetros que foram bloqueados, são add à lista de hidrômetros bloqueados, para que a cada ciclo ocorra a verficação
                
-
+               
         else: #tópico dos hidrometros
             print('________________________________________________________________________________') 
             print('--------------------------Tópico hidrômetros------------------------------------') 
