@@ -65,7 +65,8 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
     print(idMediaGeral, 'DEVEM SER BLOQUEADOS POR MÉDIA GERAL')
     for id in idMediaGeral:
         print('Bloqueando por média geral:', id)
-        manipularBanco.bloquearStatusHidrometro_MediabloquearStatusHidrometro_Media(id, setorNevoa)
+        manipularBanco.bloquearStatusHidrometro_Media(id, setorNevoa)
+        manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por media geral",vazao_aux)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
     return idMediaGeral
@@ -76,6 +77,7 @@ def desbloqueioMedia(listaIdsBloqueados, client):
     for id in listaIdsBloqueados:
         print('Desbloqueando hidrômetros:', id)
         manipularBanco.desbloquearStatusHidrometro_Media(id,setorNevoa)
+        manipularBanco.gerarHistorico(id,setorNevoa,"Desbloqueado",vazao_aux)
         mensagemBloqueio = 'desbloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
@@ -87,6 +89,7 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto, client):
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
     for id in idTetoGastos:
         manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
+        manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por teto de gasto",vazao_aux)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         print('________________________________________________________________________________')  
         print(mensagemBloqueio)    
@@ -109,12 +112,15 @@ def connect_mqtt() -> mqtt_client:
 
 '''Manipula mensagens recebidas pelo tópico dos hidrômetros'''
 def recebeHidrometros(client, msg):
+    global vazao_aux 
+   
     listaAux = []
     idHidro = msg.topic    
     aux, setorHidrometro ,  id = idHidro.split('/')   #pegando a id do hidrômetro
     if id not in hidrometrosConectados: #conferindo se já existe essa ID na lista
         hidrometrosConectados.append(id)                
-        print('hidrometros conectados', nHidrometros , '\n')                  
+        print('hidrometros conectados', nHidrometros , '\n') 
+        manipularBanco.criarHidrometro(id,setorNevoa)                 
     mensagem = msg.payload.decode()            
     listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split
     listaAux.append(float(listrosUtilizados))
@@ -130,6 +136,10 @@ def recebeHidrometros(client, msg):
     print('\n Situção de vazamento (0 para vazamento e 1 para não):'+ vaza , '\n')
     print('\n') 
     dado.append(listaAux)
+
+    vazao_aux = vazao
+    manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao)
+    manipularBanco.salvarConsumoTotal(id,setorNevoa,listrosUtilizados)
     return dado 
 
 #esse método serve para o servidor central verificar se todos os nós conectados enviaram suas médias, para que assim ele consiga calcular a média geral de forma correta
