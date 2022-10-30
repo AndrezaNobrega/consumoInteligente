@@ -4,7 +4,6 @@ from paho.mqtt import client as mqtt_client
 import time
 import hidrometro
 import datetime
-#from nevoa.manipularBanco import manipularBanco
 
 # parametros broker
 '''broker = 'broker.emqx.io'''
@@ -24,7 +23,6 @@ litroConsumidos = 0
 status = False
 pressao = 1 #aqui é a pressão que está sendo exercida no hidrometro
 hidrometro1 = hidrometro.Hidrometro(hidrometroiD, setor) #cria objeto
-#manipularBanco.criarHidrometro(id,setor)
 vazao = 0 #inicializando variável
 pressao = str(random.randint(0,9)) #fica sendo gerado um valor entre 0 e 10, caso esse valor seja zero, significa que há algum problema nos canos
 
