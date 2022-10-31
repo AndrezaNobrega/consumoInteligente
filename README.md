@@ -16,3 +16,5 @@
 - [Tela do usuário](#Usuário)
 - [Tela do administrador](#Administrador)
 - [API REST](#APIREST)
+- [Banco de dados](#Banco_de_dados)
+<p2>Todos os nós da névoa tem um banco de dados chamado de "setor". O banco de dados é manipulado no arquivo de "manipularBanco.py" <p2>
