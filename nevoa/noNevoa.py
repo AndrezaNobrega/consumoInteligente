@@ -1,7 +1,6 @@
 import imp
 from operator import imod
 import random
-from api.py.api import teto
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
@@ -151,6 +150,7 @@ def inicializacao(client):
 #inscreve-se no tópico do servidor e trata as mensagens, de acordo com o tópico que está sendo recebido
 def subscribeServer(client: mqtt_client): 
     def on_message(client, userdata, msg):
+        global tetoGasto
         global dado    
         global hidrometrosConectados
         global nHidrometros

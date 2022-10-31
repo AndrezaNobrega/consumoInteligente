@@ -1,9 +1,6 @@
 from apiMetodos import *
 from flask import Flask, jsonify
-from nevoa.manipularBanco import *
 app = Flask(__name__)
-
-
 '''rotas adm'''
 
 

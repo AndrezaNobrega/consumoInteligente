@@ -32,18 +32,3 @@ def enviaTetoMetodo(teto):
     else:
         return 'Falha no envio'
 
-def subscribe(client: mqtt_client, setor, hidrometroID):
-    def on_message(client, userdata, msg):
-        mensagem = msg.payload.decode() 
-        listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split
-        print('horário', dataH)
-        print('Consumo', listrosUtilizados)        
-        time.sleep(2) 
-    client.subscribe('Hidrometros/'+ setor + '/'+ hidrometroID)
-    client.on_message = on_message
-
-
-
-
-subscribe(client, '2', '4696')
-client.loop_forever()
