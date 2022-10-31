@@ -1,7 +1,7 @@
 import imp
-from operator import imod
+from operator import imod, le
 import random
-from api.py.api import teto
+#from api.py.api import teto
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
@@ -15,6 +15,7 @@ port = 1883
 username = 'emqx'
 password = 'public'''
 
+
 #gerando o ID
 client_id = str(random.randint(0, 100))
 dado = [] #bd da nuvem
@@ -24,6 +25,7 @@ setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
 manipularBanco.criarBDSetor(setorNevoa)              #criar banco de dados do nó (setor) caso não exista
 tetoGasto = 0 #deve ser modificado pela API
 listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
+
 
 #recebe como parâmetro a matriz do nó
 #retornaDataFrame com última ocorrência de cada ID
@@ -113,14 +115,15 @@ def connect_mqtt() -> mqtt_client:
 '''Manipula mensagens recebidas pelo tópico dos hidrômetros'''
 def recebeHidrometros(client, msg):
     global vazao_aux 
-   
+    global litrosUtilizados_aux
+    
     listaAux = []
     idHidro = msg.topic    
     aux, setorHidrometro ,  id = idHidro.split('/')   #pegando a id do hidrômetro
     if id not in hidrometrosConectados: #conferindo se já existe essa ID na lista
         hidrometrosConectados.append(id)                
-        print('hidrometros conectados', nHidrometros , '\n') 
-        manipularBanco.criarHidrometro(id,setorNevoa)                 
+        print('hidrometros conectados', len(hidrometrosConectados) , '\n')
+        #print('hidrometros conectados', nHidrometros, '\n')
     mensagem = msg.payload.decode()            
     listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split
     listaAux.append(float(listrosUtilizados))
@@ -138,8 +141,11 @@ def recebeHidrometros(client, msg):
     dado.append(listaAux)
 
     vazao_aux = vazao
-    manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao)
-    manipularBanco.salvarConsumoTotal(id,setorNevoa,listrosUtilizados)
+    litrosUtilizados_aux = listrosUtilizados
+
+    manipularBanco.criarHidrometro(id,setorNevoa)
+    manipularBanco.gerarHistorico(id, setorNevoa, "Hidrometro criado no banco de dados", vazao)
+
     return dado 
 
 #esse método serve para o servidor central verificar se todos os nós conectados enviaram suas médias, para que assim ele consiga calcular a média geral de forma correta
@@ -157,6 +163,7 @@ def subscribeServer(client: mqtt_client):
         global listaHidrometrosBloqueados
         topico = msg.topic        
         aux, setorHidrometro,  id = topico.split('/')   #pegando qual é o tópico
+
         if aux == 'server': #verfica a mensagem foi recebida pelo server
             print('________________________________________________________________________________') 
             print('--------------------------Tópico servidor  ------------------------------------') 
@@ -196,12 +203,19 @@ def subscribeServer(client: mqtt_client):
             print('--------------------------Tópico hidrômetros------------------------------------') 
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
+            
+            manipularBanco.salvarConsumoTotal(id,setorNevoa,litrosUtilizados_aux)
+            manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao_aux)      
+            #manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao_aux)
+            #manipularBanco.salvarConsumoTotal(id,setorNevoa,litrosUtilizados_aux)
+    
             #esse trecho do código verifica o tempo todo se os hidrômetros conectados ultrapassaram o valor do teto de gasto
             if tetoGasto != 0: #0 é o valor de inicialização, portanto aqui estamos verificando se foi alterado ou não. Se ele já foi alterado, o bloqueio pelo teto já ocorre assim que recebe o hidrômetro
                 tabela = ultimaoOcorrencia(dado)
                 listaHidrometrosBloqueados = bloqueioTetoGasto(tabela, tetoGasto, client)  
-                
-               
+    
+    
+
     client.subscribe("server/geral/#")          
     client.on_message = on_message
 

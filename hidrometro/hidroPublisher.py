@@ -168,7 +168,7 @@ def publish(client):
         else: #não está enviando
             print(f"ERRO FALHA NO ENVIO PARA: {topic}")
             print('Consulte sua rede')
-
+    
 #hidrometro pode ser bloqueado/desbloqeuado
 def subscribe(client: mqtt_client):   
     def on_message(client, userdata, msg):        

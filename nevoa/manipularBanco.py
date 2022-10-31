@@ -29,14 +29,13 @@ def criarHidrometro(id,setor):
 
         nome_historico = "historico_"+str(id)+"hidro"
 
-        cursor.execute("INSERT INTO hidrometros (id, setor, bloqueado, motivo, pagamento, consumo, vazamento) VALUES(?,?,?,?,?,?,?)",(id, setor, False, "", True, 0, False))
+        cursor.execute("INSERT INTO hidrometros (id, setor, bloqueado, motivo, pagamento, consumo, statusVazamento) VALUES(?,?,?,?,?,?,?)",(id, setor, False, "", True, 0, False))
         cursor.execute('CREATE TABLE {} (dataHora datatime, acao integer, vazao integer)'.format(nome_historico))
 
         banco.commit()
         banco.close()
     except:
         print("")
-
 
 
 #ALTERAÇÃO POR PAGAMENTO ----------------------------------------------------------------
@@ -139,10 +138,10 @@ def gerarHistorico(id,setor,acao,vazao):
         data_hora = datetime.datetime.now()
 
         if vazao == 0: 
-            cursor.execute("""UPDATE hidrometros SET vazamento = True WHERE id = ?""",(id,))
+            cursor.execute("""UPDATE hidrometros SET statusVazamento = True WHERE id = ?""",(id,))
 
         else: 
-            cursor.execute("""UPDATE hidrometros SET vazamento = False WHERE id = ?""",(id,))
+            cursor.execute("""UPDATE hidrometros SET statusVazamento = False WHERE id = ?""",(id,))
         
         cursor.execute('INSERT INTO {} (dataHora, acao, vazao) VALUES(?,?,?)'.format(nome_historico),(data_hora, acao, vazao))
         
