@@ -12,6 +12,7 @@
 # Índice
 
 - [Pessoas desenvolvedoras](#desenvolvedoras)
+- [Acesso ao projeto](#Acesso)
 - [Tecnologias utilizadas](#Tecnologias)
 - [Solução](#Solução)
 - [Componentes](#componentes)
@@ -33,6 +34,9 @@
 # Desenvolvedoras
 <br /><a href="https://github.com/AndrezaNobrega">Andreza Nóbrega</a>
 <br /><a href="https://github.com/Evelynsuzarte">Evelyn Suzarte</a>
+
+#Acesso
+ - colocar links do dockerhub
 
 # Tecnologias
 
