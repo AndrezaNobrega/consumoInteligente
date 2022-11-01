@@ -46,6 +46,9 @@ def elencandoMaiorGasto(db):
     print('PRINT TABELA DE HIDRÔMETROS DE FORMA ORDENADA \n', ordenado)
     return tabelaDB
 
+'''
+ Conexão feita com o Broker
+ '''
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -69,6 +72,36 @@ def subscribeAPI(client: mqtt_client):
         print('Recebendo..')
     client.subscribe('api/#') 
     client.on_message = on_message 
+
+def maiorGasto(maiorGasto_DataFrame, client, n):
+    contador = 0
+    hidroAux = 0
+    ordenado = maiorGasto_DataFrame.sort_values('Litros Utilizados', ascending=False)
+    print('dataframe ordenado', ordenado)
+    listaOrdenado = ordenado.values.tolist()
+    if int(n) > len(listaOrdenado):        
+        for hidro in listaOrdenado:
+            if len(listaOrdenado)> contador:
+                contador=+1
+                print('ID:', hidro[0], 'Litros utilizados:', hidro[1])
+                hidroAux = str(hidro[0])+ ',' + str(hidro[1]) + ',' #para facilitar a parte do envio
+                client.publish("nHidrometros/", hidroAux)
+            else:
+                print('Cancelando inscrição')
+                client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição          
+
+    for hidro in listaOrdenado:
+        if contador != n:
+            contador =+1
+            print('ID:', hidro[0], 'Litros utilizados:', hidro[1])
+            hidroAux = str(hidro[0])+ ',' + str(hidro[1]) + ',' #para facilitar a parte do envio
+            client.publish("nHidrometros/", hidroAux)
+        else:
+            break
+    print('Cancelando inscrição')
+    client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição
+        
+    
 
 def subscribeGasto(client: mqtt_client):
     def on_message(client, userdata, msg):
@@ -108,11 +141,18 @@ def subscribeGasto(client: mqtt_client):
                 print(nosConectados)
         elif assunto == 'maiorOcorrencia':
             print('Recebendo hidrometros com maiores ocorrencias do setor:', setor)
+
         elif assunto == 'api':
-            if setor == 'teto':
+            if setor == 'teto': #quando recebe requisição para enviar teto para todos os n
                 teto = msg.payload.decode()
                 print('O novo teto é:', teto)
                 client.publish("server/geral/teto", teto) #envia a media geral de todos os hidrômetros de volta para os nós
+            if setor == 'nHidrometros':  #requisição de N hidrometros
+                nHidrometros = msg.payload.decode() 
+                print(nHidrometros) #aqui vamos verificar quantos hidrômetros são 
+                maiorGasto(maiorGasto_DataFrame, client, nHidrometros) #tratamento
+                
+
         elif assunto == 'maisGasto': 
             listaAux = [] #lista que será utilizada quando receber o hidrômetros mais gastos
             mensagem = msg.payload.decode()    
@@ -124,8 +164,7 @@ def subscribeGasto(client: mqtt_client):
             print('Id', idHidro, '\n Litros utilizados:', litrosUtilizados)
             conexoesLista.append(listaAux)
             maiorGasto_DataFrame = elencandoMaiorGasto(conexoesLista) #sempre que recebo uma nova lista, esta df eh atualizado
-            print('Recebendo lista com hidrômetros com mais gasto')  
-              
+            print('Recebendo lista com hidrômetros com mais gasto')                
     client.subscribe('maisGasto/Hidrometros')
     client.on_message = on_message
 

@@ -82,9 +82,10 @@ Quando disconectamos
 def disconnect():
     print('Client disconnected',  request.sid)
 
-
-
-@app.route('/teto/<int:teto>', methods=['PATCH'])  #enviar teto para todos os nós
+"""
+Envia tento o servidor central que envia para os nós
+"""
+@app.route('/teto/<int:teto>', methods=['PATCH']) 
 def teto(teto): 
     retorno = enviaTetoMetodo(teto) #o método retorna se foi enviado com sucesso para o broker
     return jsonify(retorno) #transformando a resposta em JSON

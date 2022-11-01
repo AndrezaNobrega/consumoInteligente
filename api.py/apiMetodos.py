@@ -1,3 +1,4 @@
+from array import array
 import random
 import time
 from paho.mqtt import client as mqtt_client
@@ -8,13 +9,15 @@ port = 1883
 client_id =str(random.randint(0, 1000))
 username = 'emqx'
 password = 'public'
+conexoesLista = []
+listaAux = []
 
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
-            print("Connected to MQTT Broker!")
+            print("Conectado com o broker")
         else:
-            print("Failed to connect, return code %d\n", rc)
+            print("Falha na conexão\n", rc)
 
     client = mqtt_client.Client(client_id)
     client.username_pw_set(username, password)
@@ -23,7 +26,48 @@ def connect_mqtt():
     return client
 
 client = connect_mqtt() 
+   
+'''def subscribeNhidrometros(client: mqtt_client):
+    global conexoesLista
+    global listaAux   
+    def on_message(client, userdata, msg):
+        mensagem = msg.payload.decode()
+        if mensagem != 'unsubscribe':
+            idHidro, litrosUtilizados, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split            
+            listaAux.append(idHidro)
+            listaAux.append(float(litrosUtilizados))
+            print('Id', idHidro, '\n Litros utilizados:', litrosUtilizados)
+            conexoesLista.append(listaAux)      
+            client.on_message = on_message
+            client.loop_forever() 
+        else:
+            client.unsubscribe('nHidrometros/')
+            print('Cancelando inscrição')
+            return conexoesLista
+ '''
+ 
+def subscribe(client: mqtt_client):
+    global conexoesLista
+    global listaAux
 
+    def on_message(client, userdata, msg):
+        if(msg.payload.decode() != 'unsubscribe'):
+            idHidro, litrosUtilizados, *temp = msg.payload.decode().split(',')    #a variável temp é aux para o demsempacotamento c o split
+            print(idHidro, litrosUtilizados)      
+            listaAux.append(idHidro)
+            listaAux.append(float(litrosUtilizados))
+            print('Id', idHidro, '\n Litros utilizados:', litrosUtilizados)
+            conexoesLista.append(listaAux)
+        else:
+            client.unsubscribe('nHidrometros/')
+            client.disconnect()
+            print('Cancelando inscrição')
+
+    client.on_message = on_message
+    client.subscribe('nHidrometros/')
+    return conexoesLista
+
+    
 def enviaTetoMetodo(teto):
     result = client.publish("api/teto", str(teto))
     status = result[0]
@@ -32,3 +76,23 @@ def enviaTetoMetodo(teto):
     else:
         return 'Falha no envio'
 
+def nHidrometros(n):
+    print('Chamou')
+    result = client.publish("api/nHidrometros", str(n)) 
+    status = result[0]
+    if status == 0:
+        print('Enviado com sucesso')
+        resultado = subscribe(client)
+        client.loop_forever()
+        return resultado
+    else:
+        return 'Falha no envio'
+
+resultado = nHidrometros(2)
+print(resultado)
+   
+    
+        
+    
+    
+ 
