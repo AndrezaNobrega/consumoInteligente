@@ -65,24 +65,25 @@ Aprofundamento da explicação
 
  <h2> - Hidrômetro</h2>
 
-<p2> O hidrômetro funciona como o sensor do sistema, além dele enviar dados (servindo como publish) ele também recebe dados (servindo como subscriber) para gerenciamento do hidrômetro. Assim, nele podemos verificar a vazão de água atual, o consumo total do período, status de vazamento e pode ser bloqueado por dois motivos: estar em débito e consumo maior que a média de consumo de todos os hidrômetros. Eles estão conectados ao nó da nuvem, que também chamamos de setores, onde lá são gerenciados.<p2>
+<p2> O hidrômetro funciona como o sensor do sistema, além dele enviar dados (servindo como publish) ele também recebe dados (servindo como subscriber) para gerenciamento do hidrômetro. Assim, nele podemos verificar a vazão de água atual, o consumo total do período, status de vazamento e pode ser bloqueado por dois motivos: estar em débito e consumo maior que a média de consumo de todos os hidrômetros. Eles estão conectados ao nó da nuvem, que também chamamos de setores, onde lá são gerenciados.</p2>
 
-<h2> - Servidor<h2>
-<p2> Esse servidor serve como um servidor geral para gerenciamento da nuvem, onde ele faz q conexão com o interface dos clientes (adm e cliente) e com os nós da nuvem. Ele faz apenas o gerenciamento de envio de dados entre essas duas partes.<p2> 
+<h2> - Servidor</h2>
+ 
+<p2> Esse servidor serve como um servidor geral para gerenciamento da nuvem, onde ele faz q conexão com o interface dos clientes (adm e cliente) e com os nós da nuvem. Ele faz apenas o gerenciamento de envio de dados entre essas duas partes.</p2> 
 
-<h2>- Nó <h2>
-<p> No nó da nuvem ficam conectados os hidrômetros que estão conectados a um banco de dados que cada nó tem. Assim, qualquer ação de gerenciamento como de bloqueio, desbloqueio, visualização de consumo e outros, são feitos através do nó.<p1>
+<h2>- Nó </h2>
+<p2> No nó da nuvem ficam conectados os hidrômetros que estão conectados a um banco de dados que cada nó tem. Assim, qualquer ação de gerenciamento como de bloqueio, desbloqueio, visualização de consumo e outros, são feitos através do nó.</p2>
 
-<h2>- Tela do usuário<h2>
+<h2>- Tela do usuário</h2>
 <p2> Na tela do usuário ele tem acesso a funções de visualização dos dados de um hidrômetro, consumo atual, pagar a conta e valor da conta.
-As solicitações do usuário são gerenciadas pela API, que são enviadas ao servidor, que se conecta ao nó ( que também chamamos de setor)<p2> 
+As solicitações do usuário são gerenciadas pela API, que são enviadas ao servidor, que se conecta ao nó ( que também chamamos de setor).</p2>
 
-<h2>- Tela do administrador<h2>
+<h2>- Tela do administrador</h2>
 <p2> Na tela da administrador ele tem acesso a funções de visualização dos dados de um hidrômetro, consumo atual, pagar a conta e valor da conta.
-As solicitações do usuário são gerenciadas pela API, que são enviadas ao servidor, que se conecta ao nó ( que também chamamos de setor.<p2> 
+As solicitações do usuário são gerenciadas pela API, que são enviadas ao servidor, que se conecta ao nó ( que também chamamos de setor.</p2>
 
-<h2>- API REST<h2>
+<h2>- API REST</h2>
 <p2> A API faz a ligação entre a interface do administrador e do cliente com<p2> 
 
-<h2>- Banco de dados<h2>
-<p2> <p2> 
+<h2>- Banco de dados</h2>
+<p2> </p2> 
