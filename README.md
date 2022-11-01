@@ -17,4 +17,4 @@
 - [Tela do administrador](#Administrador)
 - [API REST](#APIREST)
 - [Banco de dados](#Banco_de_dados)
-<p2>Todos os nós da névoa tem um banco de dados chamado de "setor". O banco de dados é manipulado no arquivo de "manipularBanco.py" <p2>
+<p2>Todos os nós da névoa tem um banco de dados chamado de "setor". O banco de dados é manipulado no arquivo de "manipularBanco.py", na pasta da névoa. Nesse arquivo existe as funções de criar hidrometros, criar setores, atualização de variáveis,etc. As funções estão separadas em 3 categorias: consultas, métodos gerais, alterações por pagamento e média, e criação de banco e hidrômetro.<p2>
