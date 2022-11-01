@@ -1,6 +1,8 @@
 import random
 import time
 from paho.mqtt import client as mqtt_client
+import pandas as pd
+
 
 #broker = 'broker.emqx.io' broker público, se necessário
 broker = 'localhost'
@@ -10,10 +12,39 @@ client_id = str(random.randint(0, 100))
 username = 'emqx'
 password = 'public'
 nosConectados = []
-listaMedias = []
-listaAuxSetores = []
+listaMedias = [] #médias dos hidrometros lista
+listaAuxSetores = [] #lista dos setores conectados
+conexoesLista = [] #lista dos hidrometros conectados
+
+#quando a API enviar a requisição, ele vai retornar essas infos aqui
+maiorGasto_DataFrame = []
 
 
+#recebe como parâmetro a matriz do nó
+#retornaDataFrame com última ocorrência de cada ID
+def elencandoMaiorGasto(db):
+    listaHidrometros = []
+    unicaOcorencia = []
+    aux = 0
+    for hidrometro in db: #para criar uma lista com a última ocorrência daquele hidrômetro
+        id = hidrometro[0]    
+        if id not in listaHidrometros: 
+            listaHidrometros.append(id)
+            unicaOcorencia.append(hidrometro)
+            print(listaHidrometros)            
+            aux = listaHidrometros.index(id)
+            time.sleep(0.1)
+        else:
+            aux = listaHidrometros.index(id)
+            unicaOcorencia.pop(aux)
+            unicaOcorencia.append(hidrometro) 
+            listaHidrometros.pop(aux)
+            listaHidrometros.append(id)  
+            time.sleep(0.1)            
+    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['ID', 'Litros Utilizados']) #dataFrame com os hidrometros
+    ordenado = tabelaDB.sort_values('Litros Utilizados', ascending=False)
+    print('PRINT TABELA DE HIDRÔMETROS DE FORMA ORDENADA \n', ordenado)
+    return tabelaDB
 
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
@@ -27,51 +58,26 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     return client
 
-
 def subscribeNevoa(client: mqtt_client):
     def on_message(client, userdata, msg):
-        global nosConectados
-        global listaMedias
-        global listaAuxSetores
-        topico = msg.topic
-        print (topico)                   
-        *topico, assunto, setor = topico.split('/')   #pegando qual é o tópico
-        if assunto == 'media': #quando recebe medias
-            media = msg.payload.decode()  
-            if setor not in listaAuxSetores:
-                listaAuxSetores.append(setor)                
-                mediaNo = float(media) 
-                print(mediaNo)
-                listaMedias.append(mediaNo)
-                if listaAuxSetores == nosConectados: #aqui verifica se todos os nós inicializados já enviaram suas médias
-                                print('Enviando media geral para hidrometros')
-                                numeroSetores = len(nosConectados)
-                                somatoriaMedias = 0
-                                for media in listaMedias:
-                                    somatoriaMedias+= media
-                                    print(somatoriaMedias)
-                                somatoriaMedias = somatoriaMedias/numeroSetores #aqui para tirarmos a media
-                                print('MEDIA GERAL:', somatoriaMedias)
-                                client.publish("server/media/geral", somatoriaMedias) #envia a media geral de todos os hidrômetros de volta para os nós
-                                listaAuxSetores.clear() #reiniciando para lista 
-                                nosConectados.clear() #reiniciando lista
-                              
-        elif assunto == 'setor': #mensagem de inicialização do setor
-            setorNo = msg.payload.decode()
-            if setorNo not in nosConectados:
-                nosConectados.append(setorNo)
-                print(nosConectados)
-        elif assunto == 'maiorOcorrencia':
-            print('Recebendo hidrometros com maiores ocorrencias do setor:', setor)
+        print('Recebendo')
     client.subscribe(topic)
     client.on_message = on_message
 
-
 def subscribeAPI(client: mqtt_client): 
     def on_message(client, userdata, msg):                  
+        print('Recebendo..')
+    client.subscribe('api/#') 
+    client.on_message = on_message 
+
+def subscribeGasto(client: mqtt_client):
+    def on_message(client, userdata, msg):
+        print(f"Recebendo do {msg.topic}`")
         global nosConectados
         global listaMedias
         global listaAuxSetores
+        global conexoesLista
+        global maiorGasto_DataFrame
         topico = msg.topic
         print (topico)                   
         *topico, assunto, setor = topico.split('/')   #pegando qual é o tópico
@@ -91,8 +97,9 @@ def subscribeAPI(client: mqtt_client):
                                     print(somatoriaMedias)
                                 somatoriaMedias = somatoriaMedias/numeroSetores #aqui para tirarmos a media
                                 print('MEDIA GERAL:', somatoriaMedias)
-                                client.publish("server/media/geral", somatoriaMedias) #envia a media geral de todos os hidrômetros de volta para os nós
-                                listaAuxSetores.clear()
+                                client.publish("server/geral/media", somatoriaMedias) #envia a media geral de todos os hidrômetros de volta para os nós
+                                listaAuxSetores.clear() #para refazer a o ciclo
+                                listaMedias.clear()
                               
         elif assunto == 'setor': #mensagem de inicialização do setor
             setorNo = msg.payload.decode()
@@ -106,8 +113,21 @@ def subscribeAPI(client: mqtt_client):
                 teto = msg.payload.decode()
                 print('O novo teto é:', teto)
                 client.publish("server/geral/teto", teto) #envia a media geral de todos os hidrômetros de volta para os nós
-    client.subscribe('api/#') 
-    client.on_message = on_message 
+        elif assunto == 'maisGasto': 
+            listaAux = [] #lista que será utilizada quando receber o hidrômetros mais gastos
+            mensagem = msg.payload.decode()    
+            print('Mais gasto manipulação')        
+            print('MENSAGEM RECEBIDA', mensagem)
+            idHidro, litrosUtilizados, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split            
+            listaAux.append(idHidro)
+            listaAux.append(float(litrosUtilizados))
+            print('Id', idHidro, '\n Litros utilizados:', litrosUtilizados)
+            conexoesLista.append(listaAux)
+            maiorGasto_DataFrame = elencandoMaiorGasto(conexoesLista) #sempre que recebo uma nova lista, esta df eh atualizado
+            print('Recebendo lista com hidrômetros com mais gasto')  
+              
+    client.subscribe('maisGasto/Hidrometros')
+    client.on_message = on_message
 
 def publish(client):
     global dado 
@@ -127,7 +147,8 @@ def run():
     client = connect_mqtt()
     client.loop_start()
     subscribeNevoa(client) 
-    subscribeAPI(client)       
+    subscribeAPI(client)
+    subscribeGasto(client)       
     publish(client) 
 
 

@@ -1,10 +1,5 @@
-import imp
-from operator import imod, le
+from operator import imod
 import random
-<<<<<<< HEAD
-=======
-#from api.py.api import teto
->>>>>>> e5a6690323aec1f17fa708a9558a78e357e45d3f
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
@@ -86,6 +81,19 @@ def desbloqueioMedia(listaIdsBloqueados, client):
         mensagemBloqueio = 'desbloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
+#retorna lista elencando os que mais gastaram
+def maiorGasto(tabelaDB):
+    listaTratada = []
+    hidroAux = 0
+    ordenado = tabelaDB.sort_values('Litros Utilizados', ascending=False)
+    print('dataframe ordenado', ordenado)
+    listaOrdenado = ordenado.values.tolist()
+    for hidro in listaOrdenado:
+        print('ID:', hidro[3], 'Litros utilizados:', hidro[0])
+        hidroAux = str(hidro[3])+ ',' + str(hidro[0]) + ',' #para facilitar a parte do envio
+        listaTratada.append(hidroAux)
+    return listaTratada
+    
 #bloqueia hidrômetros por seu teto de gastos
 def bloqueioTetoGasto(tabelaDB, tetoGasto, client):    
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio    
@@ -165,8 +173,11 @@ def subscribeServer(client: mqtt_client):
         global hidrometrosConectados
         global nHidrometros
         global listaHidrometrosBloqueados
-        topico = msg.topic        
-        aux, setorHidrometro,  id = topico.split('/')   #pegando qual é o tópico
+        topico = msg.topic 
+        print('*'*15)
+        print ('TÓPICO:', topico)   
+        print('*'*15)    
+        aux, setorHidrometro,  id = topico.split('/')   #para tratamento
 
         if aux == 'server': #verfica a mensagem foi recebida pelo server
             print('________________________________________________________________________________') 
@@ -233,6 +244,11 @@ def publish(client):
         time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
         if status == 0:
             tabela = ultimaoOcorrencia(dado)
+            listaMaiorGasto =  maiorGasto(tabela) #pegamos uma lista com hirômetros elencados com maior gasto
+            for indice in listaMaiorGasto:
+                print('Enviando maior gasto', indice)
+                client.publish('maisGasto/Hidrometros', indice) #é enviado para o servidor central
+                time.sleep(1)
             media = mediaNo(tabela)
             client.publish(topicoNo, media) #envia a média desse nó
             print(f"Enviando para Servidor\n")
