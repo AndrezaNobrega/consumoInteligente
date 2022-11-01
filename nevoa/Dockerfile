@@ -1,17 +1,12 @@
 FROM python:latest
 
-ADD nuvem.py /servidor/
-ADD client_secret.json /servidor/
-ADD token.json /servidor/
+ADD noNevoa.py /nevoa/
 
-EXPOSE 5000
+EXPOSE 1883
 
-WORKDIR /nuvem/
+WORKDIR /nevoa/
 
-RUN pip install --upgrade pip
-RUN pip install google-api-python-client
-RUN pip install python-google-spreadsheet
-RUN pip install google-auth
-RUN pip install google-auth-oauthlib
+RUN pip install paho-mqtt
+RUN pip install pandas
 
-CMD ["python3", "/nuvem/nuvem.py"]
+CMD ["python3", "/nevoa/noNevoa.py"]

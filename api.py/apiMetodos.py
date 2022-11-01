@@ -1,7 +1,6 @@
-from array import array
 import random
-import time
 from paho.mqtt import client as mqtt_client
+
 #broker = 'broker.emqx.io'
 broker = 'localhost'  
 port = 1883
@@ -27,25 +26,6 @@ def connect_mqtt():
 
 client = connect_mqtt() 
    
-'''def subscribeNhidrometros(client: mqtt_client):
-    global conexoesLista
-    global listaAux   
-    def on_message(client, userdata, msg):
-        mensagem = msg.payload.decode()
-        if mensagem != 'unsubscribe':
-            idHidro, litrosUtilizados, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split            
-            listaAux.append(idHidro)
-            listaAux.append(float(litrosUtilizados))
-            print('Id', idHidro, '\n Litros utilizados:', litrosUtilizados)
-            conexoesLista.append(listaAux)      
-            client.on_message = on_message
-            client.loop_forever() 
-        else:
-            client.unsubscribe('nHidrometros/')
-            print('Cancelando inscrição')
-            return conexoesLista
- '''
- 
 def subscribe(client: mqtt_client):
     global conexoesLista
     global listaAux
@@ -90,9 +70,3 @@ def nHidrometros(n):
 
 resultado = nHidrometros(2)
 print(resultado)
-   
-    
-        
-    
-    
- 

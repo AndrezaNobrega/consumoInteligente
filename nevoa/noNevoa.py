@@ -1,10 +1,8 @@
-from operator import imod
 import random
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
-from tqdm import tqdm #para a barra de progresso
-import manipularBanco 
+import manipularBanco
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
@@ -13,6 +11,7 @@ port = 1883
 username = 'emqx'
 password = 'public'''
 
+global setorNevoa
 
 #gerando o ID
 client_id = str(random.randint(0, 100))
@@ -155,7 +154,7 @@ def recebeHidrometros(client, msg):
     litrosUtilizados_aux = listrosUtilizados
 
     manipularBanco.criarHidrometro(id,setorNevoa)
-    manipularBanco.gerarHistorico(id, setorNevoa, "Hidrometro criado no banco de dados", vazao)
+    manipularBanco.gerarHistorico(id, "Hidrometro criado no banco de dados", vazao)
 
     return dado 
 
@@ -219,8 +218,8 @@ def subscribeServer(client: mqtt_client):
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
             
-            manipularBanco.salvarConsumoTotal(id,setorNevoa,litrosUtilizados_aux)
-            manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao_aux)      
+            manipularBanco.salvarConsumoTotal(id,litrosUtilizados_aux)
+            manipularBanco.gerarHistorico(id,"Hidrometro conectado",vazao_aux)      
             #manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao_aux)
             #manipularBanco.salvarConsumoTotal(id,setorNevoa,litrosUtilizados_aux)
     
