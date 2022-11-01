@@ -6,8 +6,6 @@ app = Flask(__name__)
 
 '''rotas adm'''
 
-
-
 '''@app.route('/exemplo', methods=['GET'])  #endpoint
 def exemplo():
     #primeiro vamos enviar a requisição para o bd via mqtt
@@ -27,11 +25,22 @@ def lista(n):
 
 
 @app.route('/vazamento', methods=['GET'])  #procurar os hidrômetros que possuem vazamento
-def lista(n):
+def lista(setor):
     #a ver como será feito
     #a gente vai recever a resposta e transformar em json
     #dessa maneira # jsonify(resposta)
     return 'a lista'
+
+    nomeArquivo = setor+"_setor.db"  
+    banco = sqlite3.connect(nomeArquivo)
+    cursor = banco.cursor()
+
+    resposta = cursor.execute("""SELECT id FROM hidrometros WHERE statusVazamento = True""",(id,))
+    banco.close()
+    
+    jsonify(resposta)
+
+
 
 
 @app.route('/debito/<str:setor>/<str:id>', methods=['GET'])  #verifica se está em debito

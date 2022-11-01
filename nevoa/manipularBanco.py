@@ -187,7 +187,15 @@ def exibirHistorico(id, setor):
     banco.close()
 
 #exibir informações de único hidrometro
-#def exibirHidrometro_uno(id, setor):
+def exibirHidrometro_uno(id, setor):
+    nomeArquivo = setor+"_setor.db"  
+    banco = sqlite3.connect(nomeArquivo)
+    cursor = banco.cursor()
+
+    cursor.execute("""SELECT * FROM hidrometros WHERE id = ?""",(id,))
+    
+    banco.close()
+
 
 #exibir hidrometros em débito
 def consultarStatus_debito(id, setor):
@@ -195,7 +203,7 @@ def consultarStatus_debito(id, setor):
     banco = sqlite3.connect(nomeArquivo)
     cursor = banco.cursor()
 
-    cursor.execute("""SELECT consumo FROM hidrometros WHERE id = ?""",(id,))
+    cursor.execute("""SELECT id FROM hidrometros WHERE id = ? and motivo = 'debito' """,(id,))
     
     banco.close()   
 
@@ -205,46 +213,6 @@ def consultarStatus_vazamento(id, setor):
     banco = sqlite3.connect(nomeArquivo)
     cursor = banco.cursor()
 
-    cursor.execute("""SELECT consumo FROM hidrometros WHERE id = ?""",(id,))
+    cursor.execute("""SELECT id FROM hidrometros WHERE statusVazamento = True""",(id,))
     banco.close()
 
-
-
-
-
-
-
-"""#atualizar status para falso onde vazão é maior que digitado por adm ou por débito em aberto, colocar variável referente ao motivo do bloqueio 
-def bloquearStatusHidrometro(id, idAcao, setor):
-    nomeArquivo = setor+"_setor.db"  
-    banco = sqlite3.connect(nomeArquivo)
-    cursor = banco.cursor()
-
-    cursor.execute("UPDATE hidrometros SET bloqueado = True WHERE id_hidrometro == %i",id)
-
-    #dependendo do id da ação causa um bloqueio por motivo diferente
-    if idAcao == 1:             #bloqueio por media
-        cursor.execute("UPDATE hidrometros SET motivo = 'media' WHERE id_hidrometro == %i",id)
-    elif idAcao == 2:           #bloqueio por débito
-        cursor.execute("UPDATE hidrometros SET motivo = 'débito' WHERE id_hidrometro == %i",id)
-
-    banco.commit()
-    banco.close()"""
-
-
-"""#atualizar status para true onde desbloqueia o hidrometro por adm ou por débito em aberto
-def desbloquearStatusHidrometro(id, idAcao, setor):
-    
-    nomeArquivo = setor+"_setor.db"  
-    banco = sqlite3.connect(nomeArquivo)
-    cursor = banco.cursor()
-
-    cursor.execute("UPDATE hidrometros SET bloqueado = False WHERE id_hidrometro == %i",id)
-
-    #dependendo do id da ação causa um bloqueio por motivo diferente
-    if idAcao == 1:             #bloqueio por media
-        cursor.execute("UPDATE hidrometros SET motivo = '' WHERE id_hidrometro == %i",id)
-    elif idAcao == 2:           #bloqueio por débito
-        cursor.execute("UPDATE hidrometros SET motivo = '' WHERE id_hidrometro == %i",id)
-
-    banco.close()"""
