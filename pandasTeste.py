@@ -92,6 +92,22 @@ def ultimaoOcorrencia(db):
     print('PRINT TABELA DB \n',tabelaDB)
     return tabelaDB
 
+#retorna lista elencando os que mais gastaram
+def maiorGasto(tabelaDB):
+    listaTratada = []
+    hidroAux = 0
+    ordenado = tabelaDB.sort_values('Litros Utilizados', ascending=False)
+    print('dataframe ordenado', ordenado)
+    listaOrdenado = ordenado.values.tolist()
+    for hidro in listaOrdenado:
+        print('ID:', hidro[3], 'Litros utilizados:', hidro[0])
+        hidroAux = str(hidro[3])+ ',' + str(hidro[0]) + ',' #para facilitar a parte do envio
+        listaTratada.append(hidroAux)
+    return listaTratada
+    
+    
+    #agora enviamos para o servidor central
+
 #retorna a média do nó/ utiliza o dataFrame para isso
 def mediaNo(tabelaDB):
     media = tabelaDB['Litros Utilizados'].median()
@@ -113,7 +129,6 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto):
     #depois é só pegar as id que foram retornadas
 
 
-numero = ('12556.0')
-numero = numero[:-2]
-print(numero)
+dataFrame = ultimaoOcorrencia(db)
+maiorGasto(dataFrame)
 

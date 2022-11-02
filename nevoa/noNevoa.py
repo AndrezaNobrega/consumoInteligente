@@ -1,12 +1,8 @@
-import imp
-from operator import imod, le
 import random
-#from api.py.api import teto
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
-from tqdm import tqdm #para a barra de progresso
-import manipularBanco 
+import manipularBanco
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
@@ -15,6 +11,7 @@ port = 1883
 username = 'emqx'
 password = 'public'''
 
+global setorNevoa
 
 #gerando o ID
 client_id = str(random.randint(0, 100))
@@ -83,6 +80,19 @@ def desbloqueioMedia(listaIdsBloqueados, client):
         mensagemBloqueio = 'desbloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
+#retorna lista elencando os que mais gastaram
+def maiorGasto(tabelaDB):
+    listaTratada = []
+    hidroAux = 0
+    ordenado = tabelaDB.sort_values('Litros Utilizados', ascending=False)
+    print('dataframe ordenado', ordenado)
+    listaOrdenado = ordenado.values.tolist()
+    for hidro in listaOrdenado:
+        print('ID:', hidro[3], 'Litros utilizados:', hidro[0])
+        hidroAux = str(hidro[3])+ ',' + str(hidro[0]) + ',' #para facilitar a parte do envio
+        listaTratada.append(hidroAux)
+    return listaTratada
+    
 #bloqueia hidrômetros por seu teto de gastos
 def bloqueioTetoGasto(tabelaDB, tetoGasto, client):    
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio    
@@ -144,7 +154,7 @@ def recebeHidrometros(client, msg):
     litrosUtilizados_aux = listrosUtilizados
 
     manipularBanco.criarHidrometro(id,setorNevoa)
-    manipularBanco.gerarHistorico(id, setorNevoa, "Hidrometro criado no banco de dados", vazao)
+    manipularBanco.gerarHistorico(id, "Hidrometro criado no banco de dados", vazao)
 
     return dado 
 
@@ -157,12 +167,16 @@ def inicializacao(client):
 #inscreve-se no tópico do servidor e trata as mensagens, de acordo com o tópico que está sendo recebido
 def subscribeServer(client: mqtt_client): 
     def on_message(client, userdata, msg):
+        global tetoGasto
         global dado    
         global hidrometrosConectados
         global nHidrometros
         global listaHidrometrosBloqueados
-        topico = msg.topic        
-        aux, setorHidrometro,  id = topico.split('/')   #pegando qual é o tópico
+        topico = msg.topic 
+        print('*'*15)
+        print ('TÓPICO:', topico)   
+        print('*'*15)    
+        aux, setorHidrometro,  id = topico.split('/')   #para tratamento
 
         if aux == 'server': #verfica a mensagem foi recebida pelo server
             print('________________________________________________________________________________') 
@@ -204,8 +218,8 @@ def subscribeServer(client: mqtt_client):
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
             
-            manipularBanco.salvarConsumoTotal(id,setorNevoa,litrosUtilizados_aux)
-            manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao_aux)      
+            manipularBanco.salvarConsumoTotal(id,litrosUtilizados_aux)
+            manipularBanco.gerarHistorico(id,"Hidrometro conectado",vazao_aux)      
             #manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao_aux)
             #manipularBanco.salvarConsumoTotal(id,setorNevoa,litrosUtilizados_aux)
     
@@ -229,6 +243,11 @@ def publish(client):
         time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
         if status == 0:
             tabela = ultimaoOcorrencia(dado)
+            listaMaiorGasto =  maiorGasto(tabela) #pegamos uma lista com hirômetros elencados com maior gasto
+            for indice in listaMaiorGasto:
+                print('Enviando maior gasto', indice)
+                client.publish('maisGasto/Hidrometros', indice) #é enviado para o servidor central
+                time.sleep(1)
             media = mediaNo(tabela)
             client.publish(topicoNo, media) #envia a média desse nó
             print(f"Enviando para Servidor\n")
