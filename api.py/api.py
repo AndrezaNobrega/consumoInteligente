@@ -5,14 +5,7 @@ app = Flask(__name__)
 
 
 
-'''@app.route('/exemplo', methods=['GET'])  #endpoint
-def exemplo():
-    #primeiro vamos enviar a requisição para o bd via mqtt
-    #a gente vai recever a resposta e transformar em json
-    #dessa maneira # jsonify(resposta)
-    return 'jshfkdsjf'
-
-
+'''
 @app.route('/listar/<int:n>', methods=['GET'])  #lista os n maiores hidômetros <ind:n> = envia os n maiores
 def lista(n):
     #primeiro vamos enviar a requisição para o servidor
@@ -87,25 +80,19 @@ def consumo(setor, id):
     return jsonify(user)
 
 
-@app.route('consumo-total/<str:setor>/<str:id>', methods=['GET'])  #visualizar históico daquele usuário
+@app.route('consumo-total/<str:setor>/<str:id>', methods=['GET'])  #buscar o valor da conta
 def valorConta(setor, id):
     #envia requisição para o bd do nó deste hidrômetro
     return jsonify(user)
 
 
-@app.route('consumo-total/<str:setor>/<str:id>', methods=['GET'])  #visualizar históico daquele usuário
+@app.route('consumo-total/<str:setor>/<str:id>', methods=['GET'])  #pagar a conta
 def pagaConta(setor, id):
     #copia método de desbloqueio aqui
     return jsonify(user)
 
 
-#como colocar um parâmtros
-@app.route('/<str:id>', methods=['GET'])
-#eemplo para busca por ID
-def list(id):
-    for user in db:
-        if id == user.id():
-            return jsonify(user)
+
 '''
 
 #aqui quando a gente for bloquear um hidrômetro

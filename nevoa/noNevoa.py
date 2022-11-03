@@ -2,7 +2,7 @@ import random
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
-import manipularBanco
+#import manipularBanco
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
@@ -18,10 +18,11 @@ client_id = str(random.randint(0, 100))
 dado = [] #bd da nuvem
 nHidrometros = 0
 hidrometrosConectados = []
-setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
-manipularBanco.criarBDSetor(setorNevoa)              #criar banco de dados do nó (setor) caso não exista
+#manipularBanco.criarBDSetor(setorNevoa)              #criar banco de dados do nó (setor) caso não exista
 tetoGasto = 0 #deve ser modificado pela API
 listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
+
+setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
 
 
 #recebe como parâmetro a matriz do nó
@@ -45,7 +46,8 @@ def ultimaoOcorrencia(db):
             listaHidrometros.pop(aux)
             listaHidrometros.append(id)  
             time.sleep(0.1)            
-    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #dataFrame com a última ocrrência de cada ID
+    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])
+    #dataFrame com a última ocrrência de cada ID
     print('PRINT TABELA DB \n',tabelaDB)
     return tabelaDB
 
@@ -64,8 +66,8 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
     print(idMediaGeral, 'DEVEM SER BLOQUEADOS POR MÉDIA GERAL')
     for id in idMediaGeral:
         print('Bloqueando por média geral:', id)
-        manipularBanco.bloquearStatusHidrometro_Media(id, setorNevoa)
-        manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por media geral",vazao_aux)
+        #manipularBanco.bloquearStatusHidrometro_Media(id, setorNevoa)
+        #manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por media geral",vazao_aux)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
     return idMediaGeral
@@ -75,8 +77,8 @@ def desbloqueioMedia(listaIdsBloqueados, client):
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio 
     for id in listaIdsBloqueados:
         print('Desbloqueando hidrômetros:', id)
-        manipularBanco.desbloquearStatusHidrometro_Media(id,setorNevoa)
-        manipularBanco.gerarHistorico(id,setorNevoa,"Desbloqueado",vazao_aux)
+        #manipularBanco.desbloquearStatusHidrometro_Media(id,setorNevoa)
+        #manipularBanco.gerarHistorico(id,setorNevoa,"Desbloqueado",vazao_aux)
         mensagemBloqueio = 'desbloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
@@ -100,8 +102,8 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto, client):
     bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto, ['ID']] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
     for id in idTetoGastos:
-        manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
-        manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por teto de gasto",vazao_aux)
+        #manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
+        #manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por teto de gasto",vazao_aux)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         print('________________________________________________________________________________')  
         print(mensagemBloqueio)    
@@ -124,9 +126,7 @@ def connect_mqtt() -> mqtt_client:
 
 '''Manipula mensagens recebidas pelo tópico dos hidrômetros'''
 def recebeHidrometros(client, msg):
-    global vazao_aux 
-    global litrosUtilizados_aux
-    
+
     listaAux = []
     idHidro = msg.topic    
     aux, setorHidrometro ,  id = idHidro.split('/')   #pegando a id do hidrômetro
@@ -135,12 +135,13 @@ def recebeHidrometros(client, msg):
         print('hidrometros conectados', len(hidrometrosConectados) , '\n')
         #print('hidrometros conectados', nHidrometros, '\n')
     mensagem = msg.payload.decode()            
-    listrosUtilizados, dataH, vazao, id, vaza, *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split
+    listrosUtilizados, dataH, vazao, id, vaza, dataPagamento,  *temp = mensagem.split(',')    #a variável temp é aux para o demsempacotamento c o split
     listaAux.append(float(listrosUtilizados))
     listaAux.append(dataH)
     listaAux.append(int(vazao))
     listaAux.append(id)
-    listaAux.append(vaza)  
+    listaAux.append(vaza) 
+    listaAux.append(dataPagamento) 
     print('\n')  
     print('\n---- ID:' + id, '---------------------------------------------------')    
     print('\nLitros utilizados: ' + listrosUtilizados)
@@ -149,12 +150,6 @@ def recebeHidrometros(client, msg):
     print('\n Situção de vazamento (0 para vazamento e 1 para não):'+ vaza , '\n')
     print('\n') 
     dado.append(listaAux)
-
-    vazao_aux = vazao
-    litrosUtilizados_aux = listrosUtilizados
-
-    manipularBanco.criarHidrometro(id,setorNevoa)
-    manipularBanco.gerarHistorico(id, "Hidrometro criado no banco de dados", vazao)
 
     return dado 
 
@@ -218,8 +213,8 @@ def subscribeServer(client: mqtt_client):
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
             
-            manipularBanco.salvarConsumoTotal(id,litrosUtilizados_aux)
-            manipularBanco.gerarHistorico(id,"Hidrometro conectado",vazao_aux)      
+            #manipularBanco.salvarConsumoTotal(id,litrosUtilizados_aux)
+            #manipularBanco.gerarHistorico(id,"Hidrometro conectado",vazao_aux)      
             #manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao_aux)
             #manipularBanco.salvarConsumoTotal(id,setorNevoa,litrosUtilizados_aux)
     

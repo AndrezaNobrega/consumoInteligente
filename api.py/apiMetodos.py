@@ -1,5 +1,6 @@
 import random
 from paho.mqtt import client as mqtt_client
+from datetime import *
 
 #broker = 'broker.emqx.io'
 broker = 'localhost'  
@@ -26,7 +27,7 @@ def connect_mqtt():
 
 client = connect_mqtt() 
    
-def subscribe(client: mqtt_client):
+def subscribeNhidrometros(client: mqtt_client):
     global conexoesLista
     global listaAux
 
@@ -56,17 +57,26 @@ def enviaTetoMetodo(teto):
     else:
         return 'Falha no envio'
 
-def nHidrometros(n):
-    print('Chamou')
+
+#n: é o número dr hidrômetros que você deseja receve
+def nHidrometros(n):    
     result = client.publish("api/nHidrometros", str(n)) 
     status = result[0]
     if status == 0:
         print('Enviado com sucesso')
-        resultado = subscribe(client)
+        resultado = subscribeNhidrometros(client)
         client.loop_forever()
         return resultado
     else:
         return 'Falha no envio'
 
-resultado = nHidrometros(2)
-print(resultado)
+def verificaDebito(idConsultado, setor):
+    result = client.publish("api/"+setor "/"+debito, str(idConsultado))
+    status = result[0]
+    if status == 0:
+        print('Enviado com sucesso')
+        #resultado = subscribeDebito(client) #ainda fazer
+        client.loop_forever()
+        #return resultado
+    else:
+        return 'Falha no envio'

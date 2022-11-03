@@ -1,12 +1,12 @@
 import random
-import time
 from paho.mqtt import client as mqtt_client
 import time
 import hidrometro
-import datetime
+from datetime import datetime, timedelta
+
 
 # parametros broker
-'''broker = 'broker.emqx.io'''
+#broker = 'broker.emqx.io'
 username = 'emqx'
 password = 'public'''
 broker = 'localhost'                        #inicializar mosquitto através do cmd
@@ -26,12 +26,20 @@ hidrometro1 = hidrometro.Hidrometro(hidrometroiD, setor) #cria objeto
 vazao = 0 #inicializando variável
 pressao = str(random.randint(0,9)) #fica sendo gerado um valor entre 0 e 10, caso esse valor seja zero, significa que há algum problema nos canos
 
+#ao inicializar é criada uma data inicial de pagamento
+now = datetime.now() + timedelta(minutes= 10) #hora que será o próximo pagamento
+dataAux = str(now) #convertendo horário para string
+dataPagamento= dataAux[:16] #recortando horas e segundos da String
+print('*'*10)
+print('Data de pagamento inicial:', dataPagamento)
+print('*', 10)
+
 '''Ao inicializar o hidrometro, precisamos inserir se ele terá um alto, baixo ou médio grau de gasto, a partir daí será gerado pelo próprio hidrometro
 com base na sua faixa de gasto'''
 grau = input('Digite o grau do gasto para o hidrometro:\n [1] para baixo \n [2] para médio \n [3] para alto \n Digite aqui:')
 
 def getData():
-        data = datetime.datetime.now() #pega o horário atual
+        data = datetime.now() #pega o horário atual
         dataAux = str(data) #convertendo horário para string
         dataAux= dataAux[:16] #recortando horas e segundos da String
         return dataAux
@@ -74,7 +82,8 @@ def publish(client):
     global vazao
     global status
     global grau  
-    global topic  
+    global topic 
+    global dataPagamento 
     while True:
         if status == False:            
             vazao = geraVazao(grau)                       
@@ -86,7 +95,7 @@ def publish(client):
             vazao = str(vazao)
             pressao = str(random.randint(0,9)) #gerando uma pressão 
             vaza = vazamento(pressao)
-            infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
+            infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ',' + dataPagamento + ','
             print('___________','Enviando para a névoa','_______________________________') 
             result = client.publish(topic, infoHidro)
             print(hidrometroiD)
@@ -111,7 +120,7 @@ def publish(client):
             vazao = str(vazao)
             pressao = str(random.randint(0,9)) #gerando pressao 
             vaza = vazamento(pressao)
-            infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
+            infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ',' + dataPagamento + ','
             print('Enviando para a névoa')
             result = client.publish(topic, infoHidro)
             statusEnvio = result[0]
@@ -132,7 +141,7 @@ def publish(client):
                 litroConsumidos = str(litroConsumidos)
                 vazao = str(vazao) 
                 vaza = vazamento(pressao)
-                infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
+                infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ',' + dataPagamento + ','
                 print('Enviando para a névoa')
                 result = client.publish(topic, infoHidro) #tópico ta aqui
                 statusEnvio = result[0]
@@ -156,7 +165,7 @@ def publish(client):
                 litroConsumidos = str(litroConsumidos)
                 vazao = str(vazao) 
                 vaza = vazamento(pressao)
-                infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ','
+                infoHidro = litroConsumidos + ',' + data + ',' +vazao+ ',' +id+ ',' +vaza+ ',' + dataPagamento + ','
                 print('___________','Enviando para a névoa','_______________________________')                 
                 result = client.publish(topic, infoHidro)
                 statusEnvio = result[0]                

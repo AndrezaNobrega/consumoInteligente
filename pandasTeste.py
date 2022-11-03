@@ -1,5 +1,10 @@
+from datetime import *
+from msilib.schema import tables
 import time
+from unittest import result
 import pandas as pd
+#pip install o openpyxl
+from openpyxl import load_workbook
 
 db = [[154,	'29-09-22 01:39',	'11',	4001,	'1'],
 [176,	'29-09-22 01:40',	'11',	4001,	'1'],
@@ -88,8 +93,7 @@ def ultimaoOcorrencia(db):
             unicaOcorencia.append(hidrometro) 
             listaHidrometros.pop(aux)
             listaHidrometros.append(id)        
-    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #dataFrame com a última ocrrência de cada ID
-    print('PRINT TABELA DB \n',tabelaDB)
+    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao']) #dataFrame com a última ocrrência de cada ID    
     return tabelaDB
 
 #retorna lista elencando os que mais gastaram
@@ -128,7 +132,85 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto):
     print(bloqueioTabelaTestoGasto)
     #depois é só pegar as id que foram retornadas
 
+#envia para o arquivo
+#se já existe, ele 
+#dataFrame = ultimaoOcorrencia(db)
+#dataFrame.to_excel('example.xlsx')
+#df_Geral = pd.read_excel('dadosGeraisNo.xlsx', index_col=0,  dtype={'Litros Utilizados': int, 'Horário': datetime, 'Vazao atual': int, 'ID': str, 'Situacao': str})
 
-dataFrame = ultimaoOcorrencia(db)
-maiorGasto(dataFrame)
+#para resgatar
+# result = pd.read_excel('example.xlsx', index_col=0)  
+#print('resultado \n', result)
 
+'''Função atualizaArquivo
+dfTemporario: é o dataFrame que está na sendo utilizado neste ciclo do nó, este será limpo quando as informações forem '''
+def atualizaArquivo(dfTemporario):
+    #le as informações ja existentes
+    df_Geral = pd.read_excel('historicoGeralNo.xlsx', index_col=0)
+    print(df_Geral)
+
+    
+
+    # pega os dois dataframes para concatenar
+    dfNovo = [df_Geral, dfTemporario]
+    print(df_Geral, dfTemporario)
+    out_df = pd.concat(dfNovo).reset_index(drop=True)
+
+    # escreve os DF concatenados para que existam todos
+    out_df.to_excel("historicoGeralNo.xlsx", index=False)
+    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  
+    print('resultado', result)
+
+
+listaTemporaria =[  [150,	'29-09-22 01:40',	'11',	5050,	'1'],
+                    [160,	'29-09-22 01:40',	'11',	4006,	'1'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
+                    [165,	'29-09-22 01:39',	'11',	1883,	'1'],
+                    [11,	'29-09-22 01:39',	'11',	3660,	'1'],
+                    [176,	'29-09-22 01:40',	'11',	6660,	'1'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
+                    [150,	'29-09-22 01:40',	'11',	8080,	'1'],
+                    [160,	'29-09-22 01:40',	'11',	5001,	'1'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
+                    [165,	'29-09-22 01:39',	'11',	4001,	'1'],
+                    [11,	'29-09-22 01:39',	'11',	1919,	'1'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
+                    [150,	'29-09-22 01:40',	'11',	4005,	'1'],
+                    [160,	'29-09-22 01:40',	'11',	4006,	'1'],
+                    [222,	'29-09-22 01:40',	'11',	3660,	'1']]
+ #cria um auxiliar    
+dfTemporario = pd.DataFrame(listaTemporaria, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao'])
+
+
+
+#método que retorna se o usuário está em débito ou não
+#id: a id que deseja pesquisa
+
+def verificaDebito(id):
+    
+    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados
+
+    pesquisa = 'ID ==' + id
+    filtered_df = dfTemporario.query(pesquisa) #pega a coluna com aquela id
+    horario = filtered_df["Horário"].tolist() #pega apenas o horário
+    horario = str(horario)
+
+    ano = int(2022)
+    mes = int(horario[5:7])   
+    dia = int(horario[8:10])    
+    hora = int(horario[11:13])   
+    minuto = int(horario[14:16])   
+
+    inicio = datetime(year=ano, month=mes, day=dia, hour=hora, minute=minuto, second=0)
+
+    resultado = datetime.now() - inicio
+    
+    if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #programei dois minutos para simulaçao
+        print('Este usuário está em débito')
+        devendo = str('Em debito')
+    else:
+        print('Quitado')
+        devendo = str('Quitado')
+
+verificaDebito('1919', dfTemporario)
