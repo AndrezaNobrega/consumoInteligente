@@ -29,12 +29,12 @@ def criarHidrometro(id,setor):
         nome_historico = "historico_"+str(id)+"hidro"
 
         cursor.execute("INSERT INTO hidrometros (id, setor, bloqueado, motivo, pagamento, consumo, statusVazamento) VALUES(?,?,?,?,?,?,?)",(id, setor, False, "", True, 0, False))
-        cursor.execute('CREATE TABLE {} (dataHora datatime, acao integer, vazao integer)'.format(nome_historico))
+        cursor.execute('CREATE TABLE IF NOT EXISTS {} (dataHora datatime, acao integer, vazao integer)'.format(nome_historico))
 
         banco.commit()
         banco.close()
-    except:
-        print("")
+    except Exception as e:
+        print(str(e))
 
 
 #ALTERAÇÃO POR PAGAMENTO ----------------------------------------------------------------
@@ -155,7 +155,6 @@ def mostrarBDTela(setor):
     nomeArquivo = "data.db"  
     banco = sqlite3.connect(nomeArquivo)
     cursor = banco.cursor()
-
     cursor.execute('SELECT * FROM hidrometros')
     print(cursor.fetchall())
 
@@ -209,6 +208,7 @@ def consultarStatus_vazamento(id):
 
 
 
+mostrarBDTela("2")
 
 
 
