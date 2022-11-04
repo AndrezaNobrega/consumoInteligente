@@ -135,5 +135,12 @@ def verificaVazamento():
     else:
         return 'Falha no envio'
 
-
-verificaVazamento()
+#bloqueia o hidrômetro com base em sua ID
+def bloqueiaHidrometro(id):
+    mensagemBloqueio = 'bloquear/'+ str(id) 
+    result = client.publish("bloqueio/api", mensagemBloqueio)
+    status = result[0]
+    if status == 0:
+        return (id + 'bloqueado com sucesso!')
+    else:
+        return 'Falha no envio'

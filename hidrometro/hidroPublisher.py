@@ -204,7 +204,8 @@ def subscribe(client: mqtt_client):
                 print('*'*40)   
                 print('*'*40)
                 print(mensagem) #teste
-    client.subscribe("bloqueio/"+ setor)
+    client.subscribe("bloqueio/"+ setor) #quando é bloqueado pelo setor
+    client.subscribe("bloqueio/api") #quando é bloqueado pela api
     client.on_message = on_message
 
 def run():
