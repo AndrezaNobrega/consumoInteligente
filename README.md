@@ -52,11 +52,15 @@
 
 
 # Solução
-  &emsp Como uma otimização do projeto anterior, foi proposta uma nova abordagem, dessa vez utilizando um modelo descentralizado. Portanto, a solução baseia-se sobretudo na **computação em névoa** para o melhor uso da rede, tempo de resposta, escalabilidade e até segurança do projeto.
-  &emsp A computação em névoa é uma infraestrutura de computação descentralizada. Nela dados, computação, armazenamento e aplicativos estão localizados em algum lugar entre a fonte de dados e a nuvem. Assim como a computação de borda, a computação em névoa traz as vantagens e o poder da nuvem para mais perto de onde os dados são criados e utilizados. Inclusive, muitas pessoas usam os termos computação em névoa e computação de borda de forma intercambiável porque ambos envolvem trazer inteligência e processamento para mais perto de onde os dados são criados. 
-   &emsp Para o desenvolvimento dessa infrastrutura foi utilizado o protocolo **MQTT** (*MessageQueing Telemetry Transport* m protoloco de transporte de mensagens de formato Cliente/Servidor, a qual possibilita a comunicação entre máquinas (M2M) e para a conectivada de IoT (*internet of things*.
-   &emsp Logo, para funcionar, o protocolo MQTT utiliza um modelo de Publish/Subscribe, onde permite que o cliente faça postagens e/ou capte informações enquanto o servidor irá administrar esse envio e o recebido dos respectivos dados. 
-   &emsp Neste problema, portanto, temos a seguinte organização: 
+
+  &emsp; Como uma otimização do projeto anterior, foi proposta uma nova abordagem, dessa vez utilizando um modelo descentralizado. Portanto, a solução baseia-se sobretudo na **computação em névoa** para o melhor uso da rede, tempo de resposta, escalabilidade e até segurança do projeto. 
+ 
+ &emsp; A computação em névoa é uma infraestrutura de computação descentralizada. Nela dados, computação, armazenamento e aplicativos estão localizados em algum lugar entre a fonte de dados e a nuvem. Assim como a computação de borda, a computação em névoa traz as vantagens e o poder da nuvem para mais perto de onde os dados são criados e utilizados. Inclusive, muitas pessoas usam os termos computação em névoa e computação de borda de forma intercambiável porque ambos envolvem trazer inteligência e processamento para mais perto de onde os dados são criados.  
+
+&emsp; Para o desenvolvimento dessa infrastrutura foi utilizado o protocolo **MQTT** (*Message Queing Telemetry Transport*)  em protoloco de transporte de mensagens de formato Cliente/Servidor, a qual possibilita a comunicação entre máquinas (M2M) e para a conectivada de IoT (*internet of things*).
+  
+  &emsp; Logo, para funcionar, o protocolo MQTT utiliza um modelo de Publish/Subscribe, onde permite que o cliente faça postagens e/ou capte informações enquanto o servidor irá administrar esse envio e o recebido dos respectivos dados.    
+   &emsp; Neste problema, portanto, temos a seguinte organização: 
    #################### continuar daqui
  
 # Componentes 
