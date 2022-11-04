@@ -80,7 +80,7 @@ def verificaDebito(id, client):
 
     resultado = datetime.now() - inicio
     
-    if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #programei dois minutos para simulaçao
+    if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #verifica se já passou da data do pagamento ou está no exatado minuto
         print('O usuário', id, 'está em débito')  
         client.publish('debito/', 'Está em débito')
         time.sleep(0.4)
@@ -91,6 +91,24 @@ def verificaDebito(id, client):
         client.publish('debito/', 'Usuário Quitado')
         time.sleep(0.4)
         client.publish('debito/', 'unsubscribe')
+
+#retorna o histórico de id específico    
+def retornaHistorico(id, client):    
+    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados   
+
+    pesquisa = 'ID ==' + str(id)
+    filtered_df = result.query(pesquisa)
+    print(filtered_df)    
+    historico = filtered_df.values.tolist() #transforma o histórico em lista
+    if len(historico) == 0:
+        print('Não existe hidrômetro matriculado com este ID')
+        client.publish('historico/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
+    else:
+        for coluna in historico:
+            linhaHistorico = str(coluna[0]) + ';'+ str(coluna[1]) + ';'+  str(coluna[4])
+            client.publish('historico/', linhaHistorico)
+            
+    client.publish('historico/', 'unsubscribe') #quando acaba de enviar o conteúdo, envia uma mensagem para cancelar a inscrição
 
 #retorna a média do nó/ utiliza o dataFrame para isso
 def mediaNo(tabelaDB):
@@ -252,9 +270,12 @@ def subscribeServer(client: mqtt_client):
             print('________________________________________________________________________________') 
             print('-------------------------  Requisição API   ------------------------------------') 
             print('________________________________________________________________________________')  
-            if id == 'debito':
+            if id == 'debito': #verifica se o usuário está em débito
                 idPedido = msg.payload.decode()   
                 verificaDebito(idPedido, client)
+            if id == 'historico': #quando é pedido o histórico de um usuário específico
+                idPedido = msg.payload.decode()
+                retornaHistorico(idPedido, client)
        
                
                

@@ -38,20 +38,29 @@ def verificaDebito(id, client):
         print(id, ' está quitado')
 
 
-def listaVazamento():    
-    result = pd.read_excel("dadosGerais.xlsx", index_col=0)  #lê a base de dados    
-
-    print(result)
-    pesquisa = 'Situacao == 0'
-    filtered_df = result.query(pesquisa)
-    print(filtered_df)
-    
-    vazamento = filtered_df['ID'].tolist() #pega apenas o horário
-    print('Usuários com vazamento', vazamento)
-
+def listaVazamento(client):    
+    vazamento = pd.read_excel("vazamento.xlsx", index_col=0)  #lê a base de dados   
     for usuario in vazamento:
         print (usuario)
     print('unsubscribe')
 
 
-listaVazamento()
+def retornaHistorico(id):    
+    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados   
+
+    pesquisa = 'ID ==' + str(id)
+    filtered_df = result.query(pesquisa)
+    print(filtered_df)    
+    historico = filtered_df.values.tolist() #transforma o histórico em lista
+    if len(historico) == 0:
+        print('Não existe hidrômetro matriculado com este ID')
+    else:
+        for coluna in historico:
+            linhaHistorico = str(coluna[0]) + ';'+ str(coluna[1]) + ';'+  str(coluna[4])
+            print(linhaHistorico)
+    print('unsubscribe')
+
+retornaHistorico('25')
+        
+
+
