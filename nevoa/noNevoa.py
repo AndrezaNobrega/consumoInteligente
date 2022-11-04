@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 
+
 #import manipularBanco
 
 #parâmetros de conexão com o broker
@@ -189,8 +190,10 @@ def recebeHidrometros(client, msg):
     print('\nVazão atual: ' + vazao)    
     print('\n Situção de vazamento (0 para vazamento e 1 para não):'+ vaza , '\n')
     print('\n') 
+    if vaza == 0: #se o hidrômetro está vazando, já envia para o servidor central
+        client.publish('NoNevoa/vazando', str(id)) 
     dado.append(listaAux)
-
+    
     return dado 
 
 #esse método serve para o servidor central verificar se todos os nós conectados enviaram suas médias, para que assim ele consiga calcular a média geral de forma correta
@@ -251,7 +254,8 @@ def subscribeServer(client: mqtt_client):
             print('________________________________________________________________________________')  
             if id == 'debito':
                 idPedido = msg.payload.decode()   
-                verificaDebito(idPedido, client)                
+                verificaDebito(idPedido, client)
+       
                
                
         else: #tópico dos hidrometros

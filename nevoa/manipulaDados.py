@@ -8,6 +8,7 @@ import pandas as pd
 
 
 
+
 def verificaDebito(id, client):    
     result = pd.read_excel("dadosGerais.xlsx", index_col=0)  #lê a base de dados
     
@@ -37,4 +38,20 @@ def verificaDebito(id, client):
         print(id, ' está quitado')
 
 
-verificaDebito('2011')
+def listaVazamento():    
+    result = pd.read_excel("dadosGerais.xlsx", index_col=0)  #lê a base de dados    
+
+    print(result)
+    pesquisa = 'Situacao == 0'
+    filtered_df = result.query(pesquisa)
+    print(filtered_df)
+    
+    vazamento = filtered_df['ID'].tolist() #pega apenas o horário
+    print('Usuários com vazamento', vazamento)
+
+    for usuario in vazamento:
+        print (usuario)
+    print('unsubscribe')
+
+
+listaVazamento()

@@ -9,7 +9,7 @@ broker = 'localhost'
 port = 1883
 topic = 'NoNevoa/#'
 client_id = str(random.randint(0, 100))
-username = 'emqx'
+username = 'Servidor'
 password = 'public'
 nosConectados = []
 listaMedias = [] #médias dos hidrometros lista
@@ -73,6 +73,10 @@ def subscribeAPI(client: mqtt_client):
     client.subscribe('api/#') 
     client.on_message = on_message 
 
+'''Envia para a API os n hidrômetros com maior gasto
+maiorGasto_dataframe: é o dataFrame onde estão elencado os hidrômetros
+client, o cliente mqtt responsável pelo publish
+n: é o número de hidrôometros que deseja listar'''
 def maiorGasto(maiorGasto_DataFrame, client, n):
     contador = 0
     hidroAux = 0
@@ -100,6 +104,28 @@ def maiorGasto(maiorGasto_DataFrame, client, n):
             break
     print('Cancelando inscrição')
     client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição
+
+'''Função atualizaArquivo
+dfTemporario: é o dataFrame que está na sendo utilizado neste ciclo do nó, este será limpo quando as informações forem '''
+def atualizaArquivo(dfTemporario):
+    #le as informações ja existentes
+    df_Geral = pd.read_excel('vazamento.xlsx', index_col=0)
+    print(df_Geral)    
+
+    if df_Geral.empty == False:
+        # pega os dois dataframes para concatenar
+        dfNovo = [df_Geral, dfTemporario]
+        print(df_Geral, dfTemporario)
+        out_df = pd.concat(dfNovo).reset_index(drop=True)
+
+        # escreve os DF concatenados para que existam todos
+        out_df.to_excel("vazamento.xlsx", index=False)
+        result = pd.read_excel("vazamento.xlsx", index_col=0)  
+        print('resultado', result)
+    else:
+        dfTemporario.to_excel("vazamento.xlsx", index=False)
+        result = pd.read_excel("vazamento.xlsx", index_col=0)  
+        print('resultado', result)
         
     
 
@@ -145,12 +171,25 @@ def subscribeGasto(client: mqtt_client):
         elif assunto == 'api':
             if setor == 'teto': #quando recebe requisição para enviar teto para todos os n
                 teto = msg.payload.decode()
-                print('O novo teto é:', teto)
+                print('O novo teto é:', teto)                
                 client.publish("server/geral/teto", teto) #envia a media geral de todos os hidrômetros de volta para os nós
+
             if setor == 'nHidrometros':  #requisição de N hidrometros
                 nHidrometros = msg.payload.decode() 
                 print(nHidrometros) #aqui vamos verificar quantos hidrômetros são 
                 maiorGasto(maiorGasto_DataFrame, client, nHidrometros) #tratamento
+
+            if setor == 'vazando': #requisição vazamento                                
+                vazamento = pd.read_excel("vazamento.xlsx", index_col=0)  #lê a base de dados  
+                vazamento = vazamento.values.tolist()
+                if len(vazamento) == 0: #se a lista de vazamento está vazia, ele retorna zero
+                    client.publish("vazando/", 'Não há vazamento')
+                    time.sleep(0.5)
+                    client.publish("vazando/", 'unsubscribe')
+                for usuario in vazamento:
+                    client.publish("vazando/", usuario)
+                    print (usuario)
+                client.publish("vazando/", 'unsubscribe') #quando acaba a lista, ele envia unsubscribe
                 
 
         elif assunto == 'maisGasto': 
@@ -164,7 +203,13 @@ def subscribeGasto(client: mqtt_client):
             print('Id', idHidro, '\n Litros utilizados:', litrosUtilizados)
             conexoesLista.append(listaAux)
             maiorGasto_DataFrame = elencandoMaiorGasto(conexoesLista) #sempre que recebo uma nova lista, esta df eh atualizado
-            print('Recebendo lista com hidrômetros com mais gasto')                
+            print('Recebendo lista com hidrômetros com mais gasto')    
+        elif assunto == 'vazando':
+            idHidrometro = msg.payload.decode()
+            print('Recebendo hidrômetro vazando', idHidrometro)  
+            dfTemporario =  pd.DataFrame(idHidrometro, columns= ['ID']) #transforma em dataframe
+            atualizaArquivo(dfTemporario) #atualiza arquivo
+                    
     client.subscribe('maisGasto/Hidrometros')
     client.on_message = on_message
 
@@ -175,7 +220,6 @@ def publish(client):
     while True:        
         time.sleep(4)      #aqui é pra regular a quantidade de tempo que ele vai atualizar         
         if status == 0:
-            #client.publish(topicoServer, '6') #envia a média desse nó
             print(f"Enviando....\n")
             time.sleep(3) #colocar um tempo maior
         else:

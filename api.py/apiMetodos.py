@@ -2,6 +2,11 @@ import random
 from paho.mqtt import client as mqtt_client
 from datetime import *
 
+
+
+
+
+
 #broker = 'broker.emqx.io'
 broker = 'localhost'  
 port = 1883
@@ -11,6 +16,7 @@ username = 'API'
 password = 'public'
 conexoesLista = []
 listaAux = []
+listaIDs = []
 
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
@@ -41,7 +47,7 @@ def subscribeNhidrometros(client: mqtt_client):
             conexoesLista.append(listaAux)
         else:
             client.unsubscribe('nHidrometros/')
-            client.disconnect()
+            client.disconnect() #desconecta para encerrar a thread e obter o retorno
             print('Cancelando inscrição')
 
     client.on_message = on_message
@@ -58,14 +64,13 @@ def subscribeDebito(client: mqtt_client):
             listaAux.append(status)            
         else:
             client.unsubscribe('debito/')
-            client.disconnect()
+            client.disconnect() #desconecta para encerrar a thread e obter o retorno
             print('Cancelando inscrição')
 
     client.on_message = on_message
     client.subscribe('debito/')
     return listaAux
 
-    
 def enviaTetoMetodo(teto):
     result = client.publish("api/teto", str(teto))
     status = result[0]
@@ -99,5 +104,36 @@ def verificaDebito(idConsultado, setorConsulta):
     else:
         return 'Falha no envio'
 
-result = verificaDebito('1417', '2')
-print(result)
+def subscribeVazamento(client: mqtt_client):
+    global listaIDs
+    global listaAux
+
+    def on_message(client, userdata, msg):
+        if(msg.payload.decode() != 'unsubscribe'): #enquanto a mensasgem recebida é diferente de unsubscribe, significa que ainda há conteúdo
+            idVazamento = msg.payload.decode()         
+            listaAux.append(idVazamento) 
+            listaIDs.append(listaAux)
+            print(listaIDs)
+        else:
+            client.unsubscribe('vazando/')
+            client.disconnect() #desconecta para encerrar a thread e obter o retorno
+            print('Cancelando inscrição')
+
+    client.on_message = on_message
+    client.subscribe('vazando/')
+    return listaIDs
+
+#lista o vazamento de todo o projeto
+def verificaVazamento():    
+    result = client.publish("api/vazando", 'consulta') 
+    status = result[0]
+    if status == 0:
+        print('Enviado com sucesso')
+        resultado = subscribeVazamento(client)
+        client.loop_forever()
+        return resultado
+    else:
+        return 'Falha no envio'
+
+
+verificaVazamento()
