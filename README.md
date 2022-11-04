@@ -55,8 +55,11 @@
   (descrever toda a solução do projeto por alto, quando formos falar sobre cada componente especificamente, iremos dar uma aprofundada)
   Como uma otimização do projeto anterior, foi proposta uma nova abordagem, dessa vez utilizando um modelo descentralizado. Portanto, a solução baseia-se sobretudo na computação em névoa para o melhor uso da rede, tempo de resposta, escalabilidade e até segurança do projeto.
   A computação em névoa é uma infraestrutura de computação descentralizada. Nela dados, computação, armazenamento e aplicativos estão localizados em algum lugar entre a fonte de dados e a nuvem. Assim como a computação de borda, a computação em névoa traz as vantagens e o poder da nuvem para mais perto de onde os dados são criados e utilizados. Inclusive, muitas pessoas usam os termos computação em névoa e computação de borda de forma intercambiável porque ambos envolvem trazer inteligência e processamento para mais perto de onde os dados são criados. 
-   Para o desenvolvimento dessa infrastrutura foi utilizada a MQTT #################### continuar daqui
-  <p2>É iniciado um número desejado de hidrômetros através do terminal, selecionando o seu setor e seu nível de vazão, em seguida devemos iniciar o servidor para recebimento dos dados e logo após conectar a névoa, onde será processados as questões da média, bloqueio, etc. </p2>
+   Para o desenvolvimento dessa infrastrutura foi utilizada o protocolo MQTT (Message Queing Telemetry Transport), um protoloco de transporte de mensagens de formato Cliente/Servidor, a qual possibilita a comunicação entre máquinas (M2M) e para a conectivada de IoT (internet of things).
+   Logo, para funcionar, o protocolo MQTT utiliza um modelo de Publish/Subscribe, onde permite que o cliente faça postagens e/ou capte informações enquanto o servidor irá administrar esse envio e o recebido dos respectivos dados. 
+   Neste problema, portanto, temos a seguinte organização: 
+   #################### continuar daqui
+ 
 # Componentes 
  
 <h2> - Broker</h2>
