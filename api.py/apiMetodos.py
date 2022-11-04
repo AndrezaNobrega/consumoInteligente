@@ -7,7 +7,7 @@ broker = 'localhost'
 port = 1883
 
 client_id =str(random.randint(0, 1000))
-username = 'emqx'
+username = 'API'
 password = 'public'
 conexoesLista = []
 listaAux = []
@@ -48,6 +48,23 @@ def subscribeNhidrometros(client: mqtt_client):
     client.subscribe('nHidrometros/')
     return conexoesLista
 
+
+def subscribeDebito(client: mqtt_client):
+    global listaAux
+
+    def on_message(client, userdata, msg):
+        if(msg.payload.decode() != 'unsubscribe'):
+            status = msg.payload.decode()   #a variável temp é aux para o demsempacotamento c o split               
+            listaAux.append(status)            
+        else:
+            client.unsubscribe('debito/')
+            client.disconnect()
+            print('Cancelando inscrição')
+
+    client.on_message = on_message
+    client.subscribe('debito/')
+    return listaAux
+
     
 def enviaTetoMetodo(teto):
     result = client.publish("api/teto", str(teto))
@@ -64,19 +81,23 @@ def nHidrometros(n):
     status = result[0]
     if status == 0:
         print('Enviado com sucesso')
-        resultado = subscribeNhidrometros(client)
+        resultado = subscribeDebito(client)
         client.loop_forever()
         return resultado
     else:
         return 'Falha no envio'
 
-def verificaDebito(idConsultado, setor):
-    result = client.publish("api/"+setor "/"+debito, str(idConsultado))
+
+def verificaDebito(idConsultado, setorConsulta):
+    result = client.publish("api/"+setorConsulta+ "/debito", str(idConsultado))
     status = result[0]
     if status == 0:
         print('Enviado com sucesso')
-        #resultado = subscribeDebito(client) #ainda fazer
+        resultado = subscribeDebito(client) #ainda fazer
         client.loop_forever()
-        #return resultado
+        return resultado
     else:
         return 'Falha no envio'
+
+result = verificaDebito('1417', '2')
+print(result)

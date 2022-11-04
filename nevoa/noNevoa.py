@@ -2,14 +2,17 @@ import random
 from paho.mqtt import client as mqtt_client
 import time
 import pandas as pd
+from datetime import datetime, timedelta
+
+
 #import manipularBanco
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
 broker = 'localhost'
 port = 1883
-username = 'emqx'
-password = 'public'''
+username = 'NoNevoa'   #172.16.103.14
+password = 'public'
 
 global setorNevoa
 
@@ -47,9 +50,46 @@ def ultimaoOcorrencia(db):
             listaHidrometros.append(id)  
             time.sleep(0.1)            
     tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])
+    #tabelaDB.to_excel("dadosGerais.xlsx", index=False)
     #dataFrame com a última ocrrência de cada ID
     print('PRINT TABELA DB \n',tabelaDB)
     return tabelaDB
+
+#método que retorna se o usuário está em débito ou não
+#id: a id que deseja pesquisa
+def verificaDebito(id, client):    
+    result = pd.read_excel("dadosGerais.xlsx", index_col=0)  #lê a base de dados
+    print(result)
+
+    pesquisa = 'ID ==' + str(id)
+
+    filtered_df = result.query(pesquisa)
+    print(filtered_df)
+    
+    horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
+    print('O pagamento deve ser efetuado', horario)
+    horario = str(horario)
+    ano = int(2022)
+    mes = int(horario[7:9])   
+    dia = int(horario[10:12])    
+    hora = int(horario[13:15])   
+    minuto = int(horario[16:18])   
+
+    inicio = datetime(year=ano, month=mes, day=dia, hour=hora, minute=minuto, second=0)
+
+    resultado = datetime.now() - inicio
+    
+    if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #programei dois minutos para simulaçao
+        print('O usuário', id, 'está em débito')  
+        client.publish('debito/', 'Está em débito')
+        time.sleep(0.4)
+        client.publish('debito/', 'unsubscribe')
+
+    else:
+        print(id, ' está quitado')
+        client.publish('debito/', 'Usuário Quitado')
+        time.sleep(0.4)
+        client.publish('debito/', 'unsubscribe')
 
 #retorna a média do nó/ utiliza o dataFrame para isso
 def mediaNo(tabelaDB):
@@ -205,6 +245,13 @@ def subscribeServer(client: mqtt_client):
                 tabela = ultimaoOcorrencia(dado)
                 listaHidrometrosBloqueados = bloqueioTetoGasto(tabela, tetoGasto, client) #quando recebe o novo teto de gastos, ele puxa a tabela de ocorrências dos hidrômetros. A partir daí, já acontece  bloqueio
                 #todos os hidrômetros que foram bloqueados, são add à lista de hidrômetros bloqueados, para que a cada ciclo ocorra a verficação
+        elif aux == 'api':
+            print('________________________________________________________________________________') 
+            print('-------------------------  Requisição API   ------------------------------------') 
+            print('________________________________________________________________________________')  
+            if id == 'debito':
+                idPedido = msg.payload.decode()   
+                verificaDebito(idPedido, client)                
                
                
         else: #tópico dos hidrometros
@@ -255,6 +302,7 @@ def subscribeHidrometros(client: mqtt_client):
         topico = msg.topic  
         print('Recebendo mensagem', msg.topic)  
     client.subscribe('Hidrometros/'+setorNevoa+'/#') 
+    client.subscribe('api/'+setorNevoa+'/#') 
     client.on_message = on_message 
 
 def run():

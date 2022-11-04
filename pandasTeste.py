@@ -147,53 +147,60 @@ dfTemporario: é o dataFrame que está na sendo utilizado neste ciclo do nó, es
 def atualizaArquivo(dfTemporario):
     #le as informações ja existentes
     df_Geral = pd.read_excel('historicoGeralNo.xlsx', index_col=0)
-    print(df_Geral)
+    print(df_Geral)    
 
-    
+    if df_Geral.empty == False:
+        # pega os dois dataframes para concatenar
+        dfNovo = [df_Geral, dfTemporario]
+        print(df_Geral, dfTemporario)
+        out_df = pd.concat(dfNovo).reset_index(drop=True)
 
-    # pega os dois dataframes para concatenar
-    dfNovo = [df_Geral, dfTemporario]
-    print(df_Geral, dfTemporario)
-    out_df = pd.concat(dfNovo).reset_index(drop=True)
+        # escreve os DF concatenados para que existam todos
+        out_df.to_excel("historicoGeralNo.xlsx", index=False)
+        result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  
+        print('resultado', result)
+    else:
+        dfTemporario.to_excel("historicoGeralNo.xlsx", index=False)
+        result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  
+        print('resultado', result)
 
-    # escreve os DF concatenados para que existam todos
-    out_df.to_excel("historicoGeralNo.xlsx", index=False)
-    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  
-    print('resultado', result)
 
 
-listaTemporaria =[  [150,	'29-09-22 01:40',	'11',	5050,	'1'],
-                    [160,	'29-09-22 01:40',	'11',	4006,	'1'],
-                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
-                    [165,	'29-09-22 01:39',	'11',	1883,	'1'],
-                    [11,	'29-09-22 01:39',	'11',	3660,	'1'],
-                    [176,	'29-09-22 01:40',	'11',	6660,	'1'],
-                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
-                    [150,	'29-09-22 01:40',	'11',	8080,	'1'],
-                    [160,	'29-09-22 01:40',	'11',	5001,	'1'],
-                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
-                    [165,	'29-09-22 01:39',	'11',	4001,	'1'],
-                    [11,	'29-09-22 01:39',	'11',	1919,	'1'],
-                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
-                    [176,	'29-09-22 01:40',	'11',	4001,	'1'],
-                    [150,	'29-09-22 01:40',	'11',	4005,	'1'],
-                    [160,	'29-09-22 01:40',	'11',	4006,	'1'],
-                    [222,	'29-09-22 01:40',	'11',	3660,	'1']]
+listaTemporaria =[  [150,	'29-09-22 01:40',	'11',	5050,	'1', '29-09-22 01:40'],
+                    [160,	'29-09-22 01:40',	'11',	4006,	'1', '29-09-22 01:40'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1', '29-09-22 01:40'],
+                    [165,	'29-09-22 01:39',	'11',	1883,	'1', '29-09-22 01:40'],
+                    [11,	'29-09-22 01:39',	'11',	3660,	'1', '29-09-22 01:40'],
+                    [176,	'29-09-22 01:40',	'11',	6660,	'1', '29-09-22 01:40'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1', '29-09-22 01:40'],
+                    [150,	'29-09-22 01:40',	'11',	8080,	'1', '29-09-22 01:40'],
+                    [160,	'29-09-22 01:40',	'11',	5001,	'1', '29-09-22 01:40'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1', '29-09-22 01:40'],
+                    [165,	'29-09-22 01:39',	'11',	4001,	'1', '29-09-22 01:40'],
+                    [11,	'29-09-22 01:39',	'11',	1919,	'1', '29-09-22 01:40'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1', '29-09-22 01:40'],
+                    [176,	'29-09-22 01:40',	'11',	4001,	'1', '29-09-22 01:40'],
+                    [150,	'29-09-22 01:40',	'11',	4005,	'1', '29-09-22 01:40'],
+                    [160,	'29-09-22 01:40',	'11',	6666,	'1', '29-09-22 01:40'],
+                    [222,	'29-09-22 01:40',	'11',	3660,	'1', '29-09-22 01:40']]
  #cria um auxiliar    
-dfTemporario = pd.DataFrame(listaTemporaria, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao'])
+dfTemporario = pd.DataFrame(listaTemporaria, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])
 
 
 
 #método que retorna se o usuário está em débito ou não
 #id: a id que deseja pesquisa
-
 def verificaDebito(id):
     
     result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados
 
-    pesquisa = 'ID ==' + id
-    filtered_df = dfTemporario.query(pesquisa) #pega a coluna com aquela id
+    pesquisa = 'ID ==' + str(id)
+    filtered_df = result.query(pesquisa) #pega a coluna com aquela id
     horario = filtered_df["Horário"].tolist() #pega apenas o horário
+
+    print(result)
+    print(filtered_df)
+    print(horario)
     horario = str(horario)
 
     ano = int(2022)
@@ -213,4 +220,4 @@ def verificaDebito(id):
         print('Quitado')
         devendo = str('Quitado')
 
-verificaDebito('1919', dfTemporario)
+verificaDebito('6666')

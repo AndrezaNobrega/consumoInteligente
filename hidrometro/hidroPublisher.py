@@ -7,9 +7,9 @@ from datetime import datetime, timedelta
 
 # parametros broker
 #broker = 'broker.emqx.io'
-username = 'emqx'
+username = 'Hidrometro'
 password = 'public'''
-broker = 'localhost'                        #inicializar mosquitto através do cmd
+broker = 'localhost'                        #172.16.103.14
 port = 1883
 
 
