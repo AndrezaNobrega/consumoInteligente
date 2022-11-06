@@ -60,7 +60,19 @@
 &emsp; Para o desenvolvimento dessa infrastrutura foi utilizado o protocolo **MQTT** (*Message Queing Telemetry Transport*)  em protoloco de transporte de mensagens de formato Cliente/Servidor, a qual possibilita a comunicação entre máquinas (M2M) e para a conectivada de IoT (*internet of things*).
   
   &emsp; Logo, para funcionar, o protocolo MQTT utiliza um modelo de Publish/Subscribe, onde permite que o cliente faça postagens e/ou capte informações enquanto o servidor irá administrar esse envio e o recebido dos respectivos dados.    
-   &emsp; Os maiores desafios desse problema, foram acerca de como usar essa 'névoa' de modo com que fosse possível otimizar o uso de todos os recursos. Alguns requisitos foram propostos, e foi onde chegamos aos desafios e suas resoluções:
+   &emsp; Os maiores desafios desse problema, foram acerca de como usar essa 'névoa' de modo com que fosse possível otimizar o uso de todos os recursos. Para isso, foi pensada numa estruturação que trouxesse ligações que permitissem a troca de informações com o menor número de saltos possível, bem como, aproveitando ao máximo a rede. 
+      <p align="center">
+![image](https://user-images.githubusercontent.com/52046375/200188910-3593232b-196c-4bff-805c-388667ae3c07.png)
+</p>
+
+<h2>Restrições do projeto</h2>
+
+
+   1. Nenhum usuário deve ultrapassar a média do consumo;
+   2. Um usuário não deve ultrapassar um valor máximo em metros cúbicos;
+   3. Visualizar N hidrômetros de maior consumo
+   4. Selecionar um deles para visualizar os dados com o menor tempo de latência possível;
+   
    <h2>   1. Nenhum usuário deve ultrapasar a média do consumo.</h2>
    <p align="center">
 <img src="https://media.discordapp.net/attachments/975905192069435395/1038247676577329253/image.png?width=597&height=422"/>
