@@ -2,11 +2,6 @@ import random
 from paho.mqtt import client as mqtt_client
 from datetime import *
 
-
-
-
-
-
 #broker = 'broker.emqx.io'
 broker = 'localhost'  
 port = 1883
@@ -184,3 +179,66 @@ def verificaHistorico(idConsultado, setorConsulta):
         return resultado
     else:
         return 'Falha no envio'
+
+#se inscreve e manipula informações recebidas pelo tópico valorConta
+def subscribeValorConta(client: mqtt_client):
+    global listaAux
+
+    def on_message(client, userdata, msg):
+        if(msg.payload.decode() != 'unsubscribe'):
+            status = msg.payload.decode()   #a variável temp é aux para o demsempacotamento c o split               
+            listaAux.append(status)            
+        else:
+            client.unsubscribe('valorConta/')
+            client.disconnect() #desconecta para encerrar a thread e obter o retorno
+            print('Cancelando inscrição')
+
+    client.on_message = on_message
+    client.subscribe('valorConta/')
+    return listaAux
+
+#verifica se hidrômetro específico está em débito
+def verificaValorConta(idConsultado, setorConsulta):
+    result = client.publish("api/"+setorConsulta+ "/valorConta", str(idConsultado))
+    status = result[0]
+    if status == 0:
+        print('Enviado com sucesso')
+        resultado = subscribeDebito(client) #chama o método que se inscreve no tópico
+        client.loop_forever()
+        return resultado
+    else:
+        return 'Falha no envio'
+
+#se inscreve e manipula informações recebidas pelo tópico consumo
+def subscribeConsumo(client: mqtt_client):
+    global listaAux
+
+    def on_message(client, userdata, msg):
+        if(msg.payload.decode() != 'unsubscribe'):
+            status = msg.payload.decode()   #a variável temp é aux para o demsempacotamento c o split               
+            listaAux.append(status)            
+        else:
+            client.unsubscribe('consumo/')
+            client.disconnect() #desconecta para encerrar a thread e obter o retorno
+            print('Cancelando inscrição')
+
+    client.on_message = on_message
+    client.subscribe('consumo/')
+    return listaAux
+
+#verifica o total de litros consumidos de um hidrômetro específico
+def verificaConsumo(idConsultado, setorConsulta):
+    result = client.publish("api/"+setorConsulta+ "/consumo", str(idConsultado))
+    status = result[0]
+    if status == 0:
+        print('Enviado com sucesso')
+        resultado = subscribeDebito(client) #chama o método que se inscreve no tópico
+        client.loop_forever()
+        return resultado
+    else:
+        return 'Falha no envio'
+
+
+
+valorConta = verificaValorConta('4357', '2')
+print( 'e o valor da conta de', valorConta)

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 
 
+
 #import manipularBanco
 
 #parâmetros de conexão com o broker
@@ -93,7 +94,7 @@ def verificaDebito(id, client):
         client.publish('debito/', 'unsubscribe')
 
 #retorna o histórico de id específico    
-def retornaHistorico(id, client):    
+def retornaHistorico(id, client):   
     result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados   
 
     pesquisa = 'ID ==' + str(id)
@@ -153,7 +154,7 @@ def maiorGasto(tabelaDB):
         hidroAux = str(hidro[3])+ ',' + str(hidro[0]) + ',' #para facilitar a parte do envio
         listaTratada.append(hidroAux)
     return listaTratada
-    
+
 #bloqueia hidrômetros por seu teto de gastos
 def bloqueioTetoGasto(tabelaDB, tetoGasto, client):    
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio    
@@ -210,8 +211,7 @@ def recebeHidrometros(client, msg):
     print('\n') 
     if vaza == 0: #se o hidrômetro está vazando, já envia para o servidor central
         client.publish('NoNevoa/vazando', str(id)) 
-    dado.append(listaAux)
-    
+    dado.append(listaAux)    
     return dado 
 
 #esse método serve para o servidor central verificar se todos os nós conectados enviaram suas médias, para que assim ele consiga calcular a média geral de forma correta
@@ -219,6 +219,69 @@ def recebeHidrometros(client, msg):
 def inicializacao(client):
     topicoNo = 'NoNevoa/setor/'+ setorNevoa  #tópico que conecta com o servidor  
     client.publish(topicoNo, setorNevoa) #envia a média desse nó
+
+#retorna o consumo do hidrômetro específico 
+def retornaConsumo(id, client):    
+    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados   
+    print('puxou', result)
+
+    pesquisa = 'ID ==' + str(id)
+    filtered_df = result.query(pesquisa)
+    ordenado = filtered_df.sort_values('Litros Utilizados', ascending=False) #ordena para pegar o valor mais recente    
+    indice = ordenado.iloc[1]     
+    
+    if indice.empty == True:
+        print('Não existe hidrômetro matriculado com este ID')
+        client.publish('consumo/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
+    else:
+        resultado = indice.values.tolist()    
+        resultado = resultado[1] #pega o valor específico
+        resultado = str(resultado)
+        print('Valor total do gasto', resultado)
+        client.publish('consumo/', resultado)
+            
+    client.publish('consumo/', 'unsubscribe') #quando acaba de enviar o conteúdo, envia uma mensagem para cancelar a inscrição
+
+
+#busca o valor da conta de hidrômetro específico 
+def retornaValorConta(id, client):    
+    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados   
+
+    pesquisa = 'ID ==' + str(id)
+    filtered_df = result.query(pesquisa)
+    ordenado = filtered_df.sort_values('Litros Utilizados', ascending=False) #ordena para pegar o valor mais recente
+    indice = ordenado.iloc[1]
+    resultado = indice.values.tolist()
+    totalLitros = resultado[1] #pega o valor específico
+    resultado = str(resultado)
+    if len(resultado) == 0:
+        print('Não existe hidrômetro matriculado com este ID')
+        #client.publish('valorConta/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
+    else:
+        metrosC = totalLitros/1000 # se for retornado no banco de dados, já é tratada a informação, para que seja calculada a conta
+        if totalLitros <= 6000:
+            valorReais = 28,82
+        if metrosC > 7 and 10:
+            valorReais = (metrosC - 6)*1.17 + 28.82
+        if metrosC > 11 and 15:
+            valorReais = (metrosC - 11)*7.4 + 28.82
+        if metrosC > 16 and 20:
+            valorReais = (metrosC - 16)*8 + 28.82
+        if metrosC > 21 and 25:
+            valorReais = (metrosC - 21)*10.51 + 28.82
+        if metrosC > 26 and 30:
+            valorReais = (metrosC - 26)*11.71 + 28.82
+        if metrosC > 31 and 40:
+            valorReais = (metrosC - 31)*12.90 + 28.82
+        if metrosC > 41 and 50:
+            valorReais = (metrosC - 41)*14.79 + 28.82
+        if metrosC > 50:
+            valorReais = (metrosC - 50)*17.78 + 28.82
+        resultado = valorReais[:4]
+        print('Valor total do gasto', resultado)
+        client.publish('valorConta/', resultado)
+            
+    client.publish('valorConta/', 'unsubscribe') #quando acaba de enviar o conteúdo, envia uma mensagem para cancelar a inscrição
 
 #inscreve-se no tópico do servidor e trata as mensagens, de acordo com o tópico que está sendo recebido
 def subscribeServer(client: mqtt_client): 
@@ -276,14 +339,22 @@ def subscribeServer(client: mqtt_client):
             if id == 'historico': #quando é pedido o histórico de um usuário específico
                 idPedido = msg.payload.decode()
                 retornaHistorico(idPedido, client)
-       
-               
-               
+            if id == 'consumo': #litros consumidos   
+                idPedido = msg.payload.decode()
+                print(idPedido)  
+                retornaConsumo(idPedido, client)               
+            if id == 'valorConta': #valor da conta
+                idPedido = msg.payload.decode()
+                print(idPedido) 
+                retornaValorConta(idPedido, client)       
+
         else: #tópico dos hidrometros
             print('________________________________________________________________________________') 
             print('--------------------------Tópico hidrômetros------------------------------------') 
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
+            
+            
             
             #manipularBanco.salvarConsumoTotal(id,litrosUtilizados_aux)
             #manipularBanco.gerarHistorico(id,"Hidrometro conectado",vazao_aux)      
