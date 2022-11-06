@@ -147,21 +147,31 @@ dfTemporario: é o dataFrame que está na sendo utilizado neste ciclo do nó, es
 def atualizaArquivo(dfTemporario):
     #le as informações ja existentes
     df_Geral = pd.read_excel('historicoGeralNo.xlsx', index_col=0)
-    print(df_Geral)    
+    
+      
 
     if df_Geral.empty == False:
         # pega os dois dataframes para concatenar
+        #df_Geral = df_Geral = pd.read_excel('dadosGeraisNo.xlsx', index_col=0,  dtype={'Litros Utilizados': float, 'Horário': str, 'Vazao atual': int, 'ID': str, 'Situacao': str, 'Data de pagamento': str})
+        df_Geral = df_Geral = pd.read_excel('teste.xlsx', index_col=0) #le o que está escrito
+        print('dataframe geral******* \n', df_Geral)
+        
+        dfTemporario = dfTemporario.reset_index(drop = True) #tirando o indice do novo dataframe
+        print('data frame novo********** \n', dfTemporario)
         dfNovo = [df_Geral, dfTemporario]
         print(df_Geral, dfTemporario)
-        out_df = pd.concat(dfNovo).reset_index(drop=True)
+        #out_df = pd.concat(dfNovo).reset_index(drop=True)
+        out_df = pd.concat(dfNovo).reset_index(drop = True) #cocatena os dois
+     
+               
 
         # escreve os DF concatenados para que existam todos
-        out_df.to_excel("historicoGeralNo.xlsx", index=False)
-        result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  
-        print('resultado', result)
+        out_df.to_excel("teste.xlsx", index=False)
+        result = pd.read_excel("teste.xlsx", index_col=0)   #le pra visualizar
+        print('resultado da concatenação', result)
     else:
-        dfTemporario.to_excel("historicoGeralNo.xlsx", index=False)
-        result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  
+        dfTemporario.to_excel("teste.xlsx", index=False)
+        result = pd.read_excel("teste.xlsx", index_col=0)  
         print('resultado', result)
 
 
@@ -184,7 +194,7 @@ listaTemporaria =[  [150,	'29-09-22 01:40',	'11',	5050,	'1', '29-09-22 01:40'],
                     [160,	'29-09-22 01:40',	'11',	6666,	'1', '29-09-22 01:40'],
                     [222,	'29-09-22 01:40',	'11',	3660,	'1', '29-09-22 01:40']]
  #cria um auxiliar    
-dfTemporario = pd.DataFrame(listaTemporaria, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])
+dfTemporario = pd.DataFrame(listaTemporaria, columns= ['Litros Utilizados', 'Horario', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])
 
 
 
@@ -220,4 +230,12 @@ def verificaDebito(id):
         print('Quitado')
         devendo = str('Quitado')
 
-verificaDebito('6666')
+
+
+print(dfTemporario)
+dfTemporario.to_excel('historicoGeralNo.xlsx', index = False)
+df_Geral = df_Geral = pd.read_excel('historicoGeralNo.xlsx')
+print('df original \n ', df_Geral)
+#print('invertido \n', df_Geral[df_Geral.columns[::-1]])
+
+

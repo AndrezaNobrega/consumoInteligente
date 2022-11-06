@@ -23,11 +23,14 @@ client_id = str(random.randint(0, 100))
 dado = [] #bd da nuvem
 nHidrometros = 0
 hidrometrosConectados = []
-#manipularBanco.criarBDSetor(setorNevoa)              #criar banco de dados do nó (setor) caso não exista
 tetoGasto = 0 #deve ser modificado pela API
 listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
 
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
+
+'''
+                            TIRAR COMENTÁRIOS DA ESCRITA NO ARQUIVO
+'''
 
 
 #recebe como parâmetro a matriz do nó
@@ -50,8 +53,9 @@ def ultimaoOcorrencia(db):
             unicaOcorencia.append(hidrometro) 
             listaHidrometros.pop(aux)
             listaHidrometros.append(id)  
-            time.sleep(0.1)            
-    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])
+            time.sleep(0.1)   
+    #transforma em dataFrame         
+    tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])    
     #tabelaDB.to_excel("dadosGerais.xlsx", index=False)
     #dataFrame com a última ocrrência de cada ID
     print('PRINT TABELA DB \n',tabelaDB)
@@ -126,8 +130,6 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
     print(idMediaGeral, 'DEVEM SER BLOQUEADOS POR MÉDIA GERAL')
     for id in idMediaGeral:
         print('Bloqueando por média geral:', id)
-        #manipularBanco.bloquearStatusHidrometro_Media(id, setorNevoa)
-        #manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por media geral",vazao_aux)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
     return idMediaGeral
@@ -137,8 +139,6 @@ def desbloqueioMedia(listaIdsBloqueados, client):
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio 
     for id in listaIdsBloqueados:
         print('Desbloqueando hidrômetros:', id)
-        #manipularBanco.desbloquearStatusHidrometro_Media(id,setorNevoa)
-        #manipularBanco.gerarHistorico(id,setorNevoa,"Desbloqueado",vazao_aux)
         mensagemBloqueio = 'desbloquear/'+ str(id) 
         client.publish(topicoNevoa, mensagemBloqueio) #desbloquearHidro
 
@@ -256,7 +256,7 @@ def retornaValorConta(id, client):
     resultado = str(resultado)
     if len(resultado) == 0:
         print('Não existe hidrômetro matriculado com este ID')
-        #client.publish('valorConta/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
+        client.publish('valorConta/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
     else:
         metrosC = totalLitros/1000 # se for retornado no banco de dados, já é tratada a informação, para que seja calculada a conta
         if totalLitros <= 6000:
@@ -353,13 +353,10 @@ def subscribeServer(client: mqtt_client):
             print('--------------------------Tópico hidrômetros------------------------------------') 
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
+            tabelaHistorico =  pd.DataFrame(dado, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento']) 
+            #tabelaHistorico.to_excel('historicoGeralNo.xlsx', index = False) #envia para o arquivo
             
-            
-            
-            #manipularBanco.salvarConsumoTotal(id,litrosUtilizados_aux)
-            #manipularBanco.gerarHistorico(id,"Hidrometro conectado",vazao_aux)      
-            #manipularBanco.gerarHistorico(id,setorNevoa,"Hidrometro conectado",vazao_aux)
-            #manipularBanco.salvarConsumoTotal(id,setorNevoa,litrosUtilizados_aux)
+
     
             #esse trecho do código verifica o tempo todo se os hidrômetros conectados ultrapassaram o valor do teto de gasto
             if tetoGasto != 0: #0 é o valor de inicialização, portanto aqui estamos verificando se foi alterado ou não. Se ele já foi alterado, o bloqueio pelo teto já ocorre assim que recebe o hidrômetro
