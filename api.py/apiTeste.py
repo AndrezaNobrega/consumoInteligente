@@ -84,34 +84,34 @@ def verifica():
     retorno =  verificaVazamento()
     return jsonify(retorno) #transformando a resposta em JSON
 
-@app.route('/debito/<str:setorConsulta>/<str:idConsultado>', methods=['GET'])  #verifica se está em debito
-def debito(setorConsulta, idConsultado):
-    retorno = verificaDebito(idConsultado, setorConsulta)
+@app.route('/debito/<string:setor>/<string:id>', methods=['GET'])  #verifica se está em debito
+def debito(setor, id):
+    retorno = verificaDebito(id, setor)
     return jsonify(retorno) #transformando a resposta em JSON
 
-@app.route('bloqueio/<str:setor>', methods=['POST'])  #bloqueia hidrômetro
+@app.route('/bloqueio/<string:id>', methods=['POST'])  #bloqueia hidrômetro
 def bloquear(id):
     user = bloqueiaHidrometro(id)
     return jsonify(user)
 
 #rotas do usuário
 
-@app.route('historico/<str:setor>/<str:id>',  methods=['GET'])  #visualizar histórico daquele usuário
+@app.route('/historico/<string:setor>/<string:id>',  methods=['GET'])  #visualizar histórico daquele usuário
 def histórico(setor, id):
     historico = verificaHistorico(id, setor)
     return jsonify(historico)
 
-@app.route('consumo-total/<str:setor>/<str:id>', methods=['GET'])  #visualizar consumo daquele usuário
+@app.route('/consumo-total/<string:setor>/<string:id>', methods=['GET'])  #visualizar consumo daquele usuário
 def consumo(setor, id):
     consulta = verificaConsumo(id, setor)
     return jsonify(consulta)
 
-@app.route('valorconta/<str:setor>/<str:id>', methods=['GET'])  #buscar o valor da conta
+@app.route('/valorconta/<string:setor>/<string:id>', methods=['GET'])  #buscar o valor da conta
 def valorConta(setor, id):
     consulta = verificaValorConta(id, setor)
     return jsonify(consulta)
 
-@app.route('pagamento/<str:setor>/<str:id>', methods=['GET'])  #pagar a conta
+@app.route('/pagamento/<string:setor>/<string:id>', methods=['GET'])  #pagar a conta
 def pagaConta(setor, id):
     retornoPagamento = desbloqueiaHidrometro(id, setor)
     return jsonify(retornoPagamento)

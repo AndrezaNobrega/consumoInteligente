@@ -57,7 +57,7 @@ def ultimaoOcorrencia(db):
             time.sleep(0.1)   
     #transforma em dataFrame         
     tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])    
-    #tabelaDB.to_excel("dadosGerais.xlsx", index=False)
+    #tabelaDB.to_excel("dadosGerais.xlsx", index=True)
     #dataFrame com a última ocrrência de cada ID
     print('PRINT TABELA DB \n',tabelaDB)
     return tabelaDB
@@ -277,7 +277,7 @@ def retornaConsumo(id, client):
         client.publish('consumo/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
     else:
         resultado = indice.values.tolist()    
-        resultado = resultado[1] #pega o valor específico
+        resultado = resultado[0] #pega o valor específico
         resultado = str(resultado)
         print('Valor total do gasto', resultado)
         client.publish('consumo/', resultado)
@@ -402,7 +402,7 @@ def subscribeServer(client: mqtt_client):
                 listaP.append(data)
                 listaPagamentos.append(listaP) #appenda o novo horário de pagamento
                 tabelaDB =  pd.DataFrame(listaPagamentos, columns= ['ID', 'Data de pagamento'])    
-                tabelaDB.to_excel("pagamentos.xlsx", index=False)
+                tabelaDB.to_excel("pagamentos.xlsx", index=True)
 
         else: #tópico dos hidrometros
             print('________________________________________________________________________________') 
@@ -410,7 +410,7 @@ def subscribeServer(client: mqtt_client):
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
             tabelaHistorico =  pd.DataFrame(dado, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento']) 
-            #tabelaHistorico.to_excel('historicoGeralNo.xlsx', index = False) #envia para o arquivo
+            #tabelaHistorico.to_excel('historicoGeralNo.xlsx', index = True) #envia para o arquivo
             
 
     

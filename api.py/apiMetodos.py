@@ -69,6 +69,7 @@ def subscribeDebito(client: mqtt_client):
 
 #envia um novo teto de gastos para o servidor central
 def enviaTetoMetodo(teto):
+    client = connect_mqtt() 
     result = client.publish("api/teto", str(teto))
     status = result[0]
     if status == 0:
@@ -76,10 +77,11 @@ def enviaTetoMetodo(teto):
     else:
         return 'Falha no envio'
 
-
+#Envia para o servidor central
 #método retorna os n hidrômetros com o maior consumo
 #n: é o número dr hidrômetros que você deseja receber
-def nHidrometros(n):    
+def nHidrometros(n): 
+    client = connect_mqtt()    
     result = client.publish("api/nHidrometros", str(n)) 
     status = result[0]
     if status == 0:
@@ -90,8 +92,10 @@ def nHidrometros(n):
     else:
         return 'Falha no envio'
 
+#Envia para o nó responsábel pelo hidrômetro
 #verifica se hidrômetro específico está em débito
 def verificaDebito(idConsultado, setorConsulta):
+    client = connect_mqtt() 
     result = client.publish("api/"+setorConsulta+ "/debito", str(idConsultado))
     status = result[0]
     if status == 0:
@@ -122,8 +126,10 @@ def subscribeVazamento(client: mqtt_client):
     client.subscribe('vazando/')
     return listaIDs
 
+#Envia para o servidor central
 #lista o vazamento de todo o projeto
-def verificaVazamento():    
+def verificaVazamento():  
+    client = connect_mqtt()   
     result = client.publish("api/vazando", 'consulta') 
     status = result[0]
     if status == 0:
@@ -134,8 +140,10 @@ def verificaVazamento():
     else:
         return 'Falha no envio'
 
+#Envia mensagem para o hidrômetro específico
 #bloqueia o hidrômetro com base em sua ID
 def bloqueiaHidrometro(id):
+    client = connect_mqtt() 
     mensagemBloqueio = 'bloquear/'+ str(id) 
     result = client.publish("bloqueio/api", mensagemBloqueio)
     status = result[0]
@@ -155,7 +163,8 @@ def subscribeHistorico(client: mqtt_client):
             listaAux.append(horario)
             listaAux.append(vazao)
             listaAux.append(litrosUtilizads)
-            print(horario)
+            print(horario, vazao, litrosUtilizads)
+            
             conexoesLista.append(listaAux)           
         else:
             client.unsubscribe('historico/')
@@ -165,11 +174,13 @@ def subscribeHistorico(client: mqtt_client):
     client.on_message = on_message
     client.subscribe('historico/')
     return listaAux
-    
+
+#Envia para o setor responsável    
 #verifica o histórico de um hidrômetro específico
 # idConsultado: é necessário informar o seu id
 # setorConsulta: é necessário informar o setor que será consultado
 def verificaHistorico(idConsultado, setorConsulta):
+    client = connect_mqtt() 
     result = client.publish("api/"+setorConsulta+ "/historico", str(idConsultado))
     status = result[0]
     if status == 0:
@@ -179,6 +190,7 @@ def verificaHistorico(idConsultado, setorConsulta):
         return resultado
     else:
         return 'Falha no envio'
+
 
 #se inscreve e manipula informações recebidas pelo tópico valorConta
 def subscribeValorConta(client: mqtt_client):
@@ -197,8 +209,10 @@ def subscribeValorConta(client: mqtt_client):
     client.subscribe('valorConta/')
     return listaAux
 
+#Envia para o setor responsável
 #verifica se hidrômetro específico está em débito
 def verificaValorConta(idConsultado, setorConsulta):
+    client = connect_mqtt() 
     result = client.publish("api/"+setorConsulta+ "/valorConta", str(idConsultado))
     status = result[0]
     if status == 0:
@@ -215,7 +229,8 @@ def subscribeConsumo(client: mqtt_client):
 
     def on_message(client, userdata, msg):        
         if(msg.payload.decode() != 'unsubscribe'):
-            status = msg.payload.decode()   #a variável temp é aux para o demsempacotamento c o split               
+            status = msg.payload.decode()   #a variável temp é aux para o demsempacotamento c o split     
+            print(status)          
             listaAux.append(status)            
         else:
             client.unsubscribe('consumo/')
@@ -226,8 +241,10 @@ def subscribeConsumo(client: mqtt_client):
     client.subscribe('consumo/')
     return listaAux
 
+#Envia para o setor responsável pelo nó
 #verifica o total de litros consumidos de um hidrômetro específico
 def verificaConsumo(idConsultado, setorConsulta):
+    client = connect_mqtt() 
     result = client.publish("api/"+setorConsulta+ "/consumo", str(idConsultado))
     status = result[0]
     if status == 0:
@@ -238,8 +255,10 @@ def verificaConsumo(idConsultado, setorConsulta):
     else:
         return 'Falha no envio'
 
-#desbloqueia o hidrômetro com base em sua ID
+#Esse faz o envio para o hidrômetro e para o nó responsável 
+#desbloqueia o hidrômetro com base em sua ID, também, muda a data de pagamento
 def desbloqueiaHidrometro(id, setorConsulta):
+    client = connect_mqtt() 
     mensagemBloqueio = 'desbloquear/'+ str(id)  #envia mensagem de desbloqueio
     result = client.publish("bloqueio/api", mensagemBloqueio)
 
@@ -254,4 +273,3 @@ def desbloqueiaHidrometro(id, setorConsulta):
         return (id + 'desbloqueado com sucesso!')
     else:
         return 'Falha no envio'
-
