@@ -5,33 +5,64 @@ import pandas as pd
 
 
 def verificaDebito(id):    
-    result = pd.read_excel("dadosGerais.xlsx", index_col=0)  #lê a base de dados
-    
-    #pesquisa de acordo com o id e pega a linha mais recente
+    result = pd.read_excel("pagamentos.xlsx", index_col=0)  #lê a base de dados
     pesquisa = 'ID ==' + str(id)
-    filtered_df = result.query(pesquisa)
-    filtered_df.sort_values('Litros Utilizados', ascending=False)    
-    filtered_df.iloc[0]
-    
-    
-    horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
-    print('O pagamento deve ser efetuado', horario)
-    horario = str(horario)
-    ano = int(2022)
-    mes = int(horario[7:9])   
-    dia = int(horario[10:12])    
-    hora = int(horario[13:15])   
-    minuto = int(horario[16:18])   
+    filtered_df = result.query(pesquisa) #pesquisa o id pedido
 
-    inicio = datetime(year=ano, month=mes, day=dia, hour=hora, minute=minuto, second=0)
+    if filtered_df.empty == True: #se o id não está em pagamentos, significa que é sua primeira conta, então a informação está em dados gerais
+        print('Primeira conta')
+        result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados
+        
+        #pesquisa de acordo com o id e pega a linha mais recente
+        pesquisa = 'ID ==' + str(id)
+        filtered_df = result.query(pesquisa)
+        if filtered_df.empty == False:
+            filtered_df.sort_values('Litros Utilizados', ascending=False)    
+            filtered_df.iloc[0]
+            
+            
+            horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
+            print('O pagamento deve ser efetuado', horario)
+            horario = str(horario)
+            ano = int(2022)
+            mes = int(horario[7:9])   
+            dia = int(horario[10:12])    
+            hora = int(horario[13:15])   
+            minuto = int(horario[16:18])   
 
-    resultado = datetime.now() - inicio
-    
-    if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #programei dois minutos para simulaçao
-        print('O usuário', id, 'está em débito')  
+            inicio = datetime(year=ano, month=mes, day=dia, hour=hora, minute=minuto, second=0)
 
+            resultado = datetime.now() - inicio
+            
+            if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #se o resultado é == 0, significa que está no momento exado de pagamentp
+                print('O usuário', id, 'está em débito')   # se o resultado é >, significa que está atrasado
+
+            else:
+                print(id, ' está quitado')
+        else:
+            print(id, 'não está registrado no banco de dados. \n Verifique.')
     else:
-        print(id, ' está quitado')
+        horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
+        print('O pagamento deve ser efetuado', horario)
+        horario = str(horario)
+        ano = int(2022)
+        mes = int(horario[7:9])   
+        dia = int(horario[10:12])    
+        hora = int(horario[13:15])   
+        minuto = int(horario[16:18])   
+
+        inicio = datetime(year=ano, month=mes, day=dia, hour=hora, minute=minuto, second=0)
+
+        resultado = datetime.now() - inicio
+        
+        if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #programei dois minutos para simulaçao
+            print('O usuário', id, 'está em débito')  
+
+        else:
+            print(id, ' está quitado')
+
+    
+
 
 
 def listaVazamento(client):    
@@ -123,6 +154,6 @@ def retornaValorConta(id):
 
 
 
-valor = retornaValorConta('4855')
+valor = verificaDebito('1178')
 print('Valor da conta', valor)
 

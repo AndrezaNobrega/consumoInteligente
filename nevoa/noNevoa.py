@@ -25,6 +25,7 @@ nHidrometros = 0
 hidrometrosConectados = []
 tetoGasto = 0 #deve ser modificado pela API
 listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
+listaPagamentos = [] #lista com o momento de pagamentos para cada hidrômetro
 
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
 
@@ -64,39 +65,78 @@ def ultimaoOcorrencia(db):
 #método que retorna se o usuário está em débito ou não
 #id: a id que deseja pesquisa
 def verificaDebito(id, client):    
-    result = pd.read_excel("dadosGerais.xlsx", index_col=0)  #lê a base de dados
-    print(result)
-
+    result = pd.read_excel("pagamentos.xlsx", index_col=0)  #lê a base de dados
     pesquisa = 'ID ==' + str(id)
+    filtered_df = result.query(pesquisa) #pesquisa o id pedido
 
-    filtered_df = result.query(pesquisa)
-    print(filtered_df)
-    
-    horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
-    print('O pagamento deve ser efetuado', horario)
-    horario = str(horario)
-    ano = int(2022)
-    mes = int(horario[7:9])   
-    dia = int(horario[10:12])    
-    hora = int(horario[13:15])   
-    minuto = int(horario[16:18])   
+    if filtered_df.empty == True: #se o id não está em pagamentos, significa que é sua primeira conta, então a informação está em dados gerais
+       
+        result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados
+        
+        #pesquisa de acordo com o id e pega a linha mais recente
+        pesquisa = 'ID ==' + str(id)
+        filtered_df = result.query(pesquisa)
+        if filtered_df.empty == False:
+            filtered_df.sort_values('Litros Utilizados', ascending=False)    
+            filtered_df.iloc[0]
+            
+            
+            horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
+            print('O pagamento deve ser efetuado', horario)
+            horario = str(horario)
+            ano = int(2022)
+            mes = int(horario[7:9])   
+            dia = int(horario[10:12])    
+            hora = int(horario[13:15])   
+            minuto = int(horario[16:18])   
 
-    inicio = datetime(year=ano, month=mes, day=dia, hour=hora, minute=minuto, second=0)
+            inicio = datetime(year=ano, month=mes, day=dia, hour=hora, minute=minuto, second=0)
 
-    resultado = datetime.now() - inicio
-    
-    if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #verifica se já passou da data do pagamento ou está no exatado minuto
-        print('O usuário', id, 'está em débito')  
-        client.publish('debito/', 'Está em débito')
-        time.sleep(0.4)
-        client.publish('debito/', 'unsubscribe')
+            resultado = datetime.now() - inicio
+            
+            if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #se o resultado é == 0, significa que está no momento exado de pagamentp
+                print('O usuário', id, 'está em débito')   # se o resultado é >, significa que está atrasado
+                client.publish('debito/', 'Está em débito')
+                time.sleep(0.4)
+                client.publish('debito/', 'unsubscribe')
 
+            else:
+                print(id, ' está quitado')
+                client.publish('debito/', 'Usuário Quitado')
+                time.sleep(0.4)
+                client.publish('debito/', 'unsubscribe')
+        else:
+            print(id, 'não está registrado no banco de dados. \n Verifique.')
+            client.publish('debito/', 'Usuário não registrado')
+            time.sleep(0.4)
+            client.publish('debito/', 'unsubscribe')
     else:
-        print(id, ' está quitado')
-        client.publish('debito/', 'Usuário Quitado')
-        time.sleep(0.4)
-        client.publish('debito/', 'unsubscribe')
+        horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
+        print('O pagamento deve ser efetuado', horario)
+        horario = str(horario)
+        ano = int(2022)
+        mes = int(horario[7:9])   
+        dia = int(horario[10:12])    
+        hora = int(horario[13:15])   
+        minuto = int(horario[16:18])   
 
+        inicio = datetime(year=ano, month=mes, day=dia, hour=hora, minute=minuto, second=0)
+
+        resultado = datetime.now() - inicio
+        
+        if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #se o resultado ==0, é o momento exato de pagamento
+            print('O usuário', id, 'está em débito')   #se é maior que zero, significa que está atrasada a conta
+            client.publish('debito/', 'Está em débito')
+            time.sleep(0.4)
+            client.publish('debito/', 'unsubscribe')
+
+        else:
+            print(id, ' está quitado')
+            client.publish('debito/', 'Usuário Quitado')
+            time.sleep(0.4)
+            client.publish('debito/', 'unsubscribe')
+
+            
 #retorna o histórico de id específico    
 def retornaHistorico(id, client):   
     result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados   
@@ -187,9 +227,11 @@ def connect_mqtt() -> mqtt_client:
 '''Manipula mensagens recebidas pelo tópico dos hidrômetros'''
 def recebeHidrometros(client, msg):
 
+    listaAuxPagamento = []
     listaAux = []
     idHidro = msg.topic    
     aux, setorHidrometro ,  id = idHidro.split('/')   #pegando a id do hidrômetro
+
     if id not in hidrometrosConectados: #conferindo se já existe essa ID na lista
         hidrometrosConectados.append(id)                
         print('hidrometros conectados', len(hidrometrosConectados) , '\n')
@@ -201,7 +243,7 @@ def recebeHidrometros(client, msg):
     listaAux.append(int(vazao))
     listaAux.append(id)
     listaAux.append(vaza) 
-    listaAux.append(dataPagamento) 
+    listaAux.append(dataPagamento)  
     print('\n')  
     print('\n---- ID:' + id, '---------------------------------------------------')    
     print('\nLitros utilizados: ' + listrosUtilizados)
@@ -294,6 +336,7 @@ def subscribeServer(client: mqtt_client):
         global hidrometrosConectados
         global nHidrometros
         global listaHidrometrosBloqueados
+        global listaPagamentos
         topico = msg.topic 
         print('*'*15)
         print ('TÓPICO:', topico)   
@@ -349,7 +392,17 @@ def subscribeServer(client: mqtt_client):
             if id == 'valorConta': #valor da conta
                 idPedido = msg.payload.decode()
                 print(idPedido) 
-                retornaValorConta(idPedido, client)       
+                retornaValorConta(idPedido, client) 
+            if id == 'pagamento': #um pagamento foi efetuado 
+                listaP = []
+                mensagem = msg.payload.decode() #mensagem
+                id, data = mensagem.split(';')
+                print('O novo horário de pagamento do', id, 'é às', data)
+                listaP.append(id)
+                listaP.append(data)
+                listaPagamentos.append(listaP) #appenda o novo horário de pagamento
+                tabelaDB =  pd.DataFrame(listaPagamentos, columns= ['ID', 'Data de pagamento'])    
+                tabelaDB.to_excel("pagamentos.xlsx", index=False)
 
         else: #tópico dos hidrometros
             print('________________________________________________________________________________') 

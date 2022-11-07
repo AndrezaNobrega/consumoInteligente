@@ -239,13 +239,19 @@ def verificaConsumo(idConsultado, setorConsulta):
         return 'Falha no envio'
 
 #desbloqueia o hidrômetro com base em sua ID
-def desbloqueiaHidrometro(id):
+def desbloqueiaHidrometro(id, setorConsulta):
     mensagemBloqueio = 'desbloquear/'+ str(id)  #envia mensagem de desbloqueio
     result = client.publish("bloqueio/api", mensagemBloqueio)
+
+    data = datetime.now() + timedelta(minutes= 10) #hora que será o próximo pagamento
+    dataAux = str(data) #convertendo horário para string
+    dataAux= dataAux[:16] #recortando horas e segundos da String
+
+    mensagemPagamento = id +';' + dataAux
+    result = client.publish("api/"+setorConsulta+ "/pagamento", mensagemPagamento) #envia novo momento de pagamento para o bd
     status = result[0]
     if status == 0:
         return (id + 'desbloqueado com sucesso!')
     else:
         return 'Falha no envio'
-consumo = verificaValorConta('4855','2')
-print(consumo)
+
