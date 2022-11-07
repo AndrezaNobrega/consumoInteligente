@@ -21,8 +21,7 @@
    - [Servidor](#Servidor)
    - [Nó](#Nó)
    - [Tela do usuário](#Usuário)
-   - [Tela do administrador](#Administrador)![recording](https://user-images.githubusercontent.com/52046375/200215729-c20da6b6-062f-474a-a055-cc610f7960c9.gif)
-
+   - [Tela do administrador](#Administrador)
    - [API REST](#APIREST)
    - [Banco de dados](#dados)
 - [Demonstração](#demonstraçao)
