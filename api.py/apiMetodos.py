@@ -238,7 +238,12 @@ def verificaConsumo(idConsultado, setorConsulta):
     else:
         return 'Falha no envio'
 
-
-
-valorConta = verificaValorConta('4357', '2')
-print( 'e o valor da conta de', valorConta)
+#desbloqueia o hidrômetro com base em sua ID
+def desbloqueiaHidrometro(id):
+    mensagemBloqueio = 'desbloquear/'+ str(id)  #envia mensagem de desbloqueio
+    result = client.publish("bloqueio/api", mensagemBloqueio)
+    status = result[0]
+    if status == 0:
+        return (id + 'desbloqueado com sucesso!')
+    else:
+        return 'Falha no envio'

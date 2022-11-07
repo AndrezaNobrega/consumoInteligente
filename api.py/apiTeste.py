@@ -9,7 +9,7 @@ broker = 'localhost'
 port = 1883
 
 client_id =str(random.randint(0, 1000))
-username = 'emqx'
+username = 'API'
 password = 'public'
 
 """
