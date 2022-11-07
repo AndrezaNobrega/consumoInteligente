@@ -4,19 +4,15 @@ import time
 import pandas as pd
 
 
-
-
-
-
-
-def verificaDebito(id, client):    
+def verificaDebito(id):    
     result = pd.read_excel("dadosGerais.xlsx", index_col=0)  #lê a base de dados
     
-
+    #pesquisa de acordo com o id e pega a linha mais recente
     pesquisa = 'ID ==' + str(id)
-
     filtered_df = result.query(pesquisa)
-    print(filtered_df)
+    filtered_df.sort_values('Litros Utilizados', ascending=False)    
+    filtered_df.iloc[0]
+    
     
     horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
     print('O pagamento deve ser efetuado', horario)
@@ -124,7 +120,6 @@ def retornaValorConta(id):
             
     #client.publish('valorConta/', 'unsubscribe') #quando acaba de enviar o conteúdo, envia uma mensagem para cancelar a inscrição
 
-retornaValorConta('4357')
 
 
 

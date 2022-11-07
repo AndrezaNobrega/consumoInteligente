@@ -1,5 +1,3 @@
-from apiMetodos import *
-from flask import Flask, jsonify
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from random import random
@@ -13,11 +11,14 @@ port = 1883
 client_id =str(random.randint(0, 1000))
 username = 'emqx'
 password = 'public'
-app = Flask(__name__)
 
-
+"""
+Módulos necessários
+"""
 thread = None
 thread_lock = Lock()
+
+app = Flask(__name__)
 app.config['SECRET_KEY'] = 'donsky!'
 socketio = SocketIO(app, cors_allowed_origins='*')
 
@@ -36,7 +37,7 @@ def connect_mqtt():
 client = connect_mqtt() 
 
 """
-Aqui é onde captamos o valor via mqtt e enviamos diretamente parao o script JS para ser exibido na tela
+AQUI VAI SER A PARTE QUE VAMOS CAPTAR O VALOR DO HIDÔMETRO
 """
 def background_thread():
     def subscribe(client: mqtt_client):
@@ -82,16 +83,5 @@ Quando disconectamos
 def disconnect():
     print('Client disconnected',  request.sid)
 
-"""
-Envia tento o servidor central que envia para os nós
-"""
-@app.route('/teto/<int:teto>', methods=['PATCH']) 
-def teto(teto): 
-    retorno = enviaTetoMetodo(teto) #o método retorna se foi enviado com sucesso para o broker
-    return jsonify(retorno) #transformando a resposta em JSON
-
-
-
-if __name__ == "__main__":    
+if __name__ == '__main__':
     socketio.run(app)
-

@@ -29,7 +29,7 @@ listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a méd
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
 
 '''
-                            TIRAR COMENTÁRIOS DA ESCRITA NO ARQUIVO
+                    TIRAR COMENTÁRIOS DA ESCRITA NO ARQUIVO
 '''
 
 
