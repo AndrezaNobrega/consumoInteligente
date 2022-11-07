@@ -4,13 +4,13 @@ import time
 import pandas as pd
 
 
-def verificaDebito(id):    
+def verificaDebito(id, client):    
     result = pd.read_excel("pagamentos.xlsx", index_col=0)  #lê a base de dados
     pesquisa = 'ID ==' + str(id)
     filtered_df = result.query(pesquisa) #pesquisa o id pedido
 
     if filtered_df.empty == True: #se o id não está em pagamentos, significa que é sua primeira conta, então a informação está em dados gerais
-        print('Primeira conta')
+       
         result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados
         
         #pesquisa de acordo com o id e pega a linha mais recente
@@ -36,11 +36,20 @@ def verificaDebito(id):
             
             if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #se o resultado é == 0, significa que está no momento exado de pagamentp
                 print('O usuário', id, 'está em débito')   # se o resultado é >, significa que está atrasado
+                client.publish('debito/', 'Está em débito')
+                time.sleep(0.4)
+                client.publish('debito/', 'unsubscribe')
 
             else:
                 print(id, ' está quitado')
+                client.publish('debito/', 'Usuário Quitado')
+                time.sleep(0.4)
+                client.publish('debito/', 'unsubscribe')
         else:
             print(id, 'não está registrado no banco de dados. \n Verifique.')
+            client.publish('debito/', 'Usuário não registrado')
+            time.sleep(0.4)
+            client.publish('debito/', 'unsubscribe')
     else:
         horario = filtered_df['Data de pagamento'].tolist() #pega apenas o horário
         print('O pagamento deve ser efetuado', horario)
@@ -55,11 +64,17 @@ def verificaDebito(id):
 
         resultado = datetime.now() - inicio
         
-        if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #programei dois minutos para simulaçao
-            print('O usuário', id, 'está em débito')  
+        if resultado == timedelta(minutes = 0) or resultado > timedelta(minutes = 0): #se o resultado ==0, é o momento exato de pagamento
+            print('O usuário', id, 'está em débito')   #se é maior que zero, significa que está atrasada a conta
+            client.publish('debito/', 'Está em débito')
+            time.sleep(0.4)
+            client.publish('debito/', 'unsubscribe')
 
         else:
             print(id, ' está quitado')
+            client.publish('debito/', 'Usuário Quitado')
+            time.sleep(0.4)
+            client.publish('debito/', 'unsubscribe')
 
     
 
@@ -154,6 +169,4 @@ def retornaValorConta(id):
 
 
 
-valor = verificaDebito('1178')
-print('Valor da conta', valor)
 

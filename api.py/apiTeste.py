@@ -4,6 +4,10 @@ from random import random
 from threading import Lock
 import random
 from paho.mqtt import client as mqtt_client
+from apiMetodos import *
+from flask import Flask, jsonify
+
+
 #broker = 'broker.emqx.io'
 broker = 'localhost'  
 port = 1883
@@ -22,6 +26,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'donsky!'
 socketio = SocketIO(app, cors_allowed_origins='*')
 
+#cliente mqtt
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -37,7 +42,7 @@ def connect_mqtt():
 client = connect_mqtt() 
 
 """
-AQUI VAI SER A PARTE QUE VAMOS CAPTAR O VALOR DO HIDÔMETRO
+Esse trecho faz parte da funcionalidade de visualizar em tempo real 
 """
 def background_thread():
     def subscribe(client: mqtt_client):
@@ -63,6 +68,54 @@ def index(setor, id):
     client.subscribe('Hidrometros/'+ setor + '/'+ id)
     return render_template('index.html', setor = setor, id = id)
 
+#enviamos um novo teto de gastos para o servidor
+@app.route('/teto/<int:teto>', methods=['PATCH'])  #enviar teto para todos os nós
+def teto(teto): 
+    retorno = enviaTetoMetodo(teto) #o método retorna se foi enviado com sucesso para o broker
+    return jsonify(retorno) #transformando a resposta em JSON
+
+@app.route('/listar/<int:n>', methods=['GET'])  #lista os n maiores hidômetros <ind:n> = envia os n maiores
+def lista(n):
+    retorno = nHidrometros(n)
+    return jsonify(retorno) #transformando a resposta em JSON
+
+@app.route('/vazamento', methods=['GET'])  #procurar os hidrômetros que possuem vazamento
+def verifica():
+    retorno =  verificaVazamento()
+    return jsonify(retorno) #transformando a resposta em JSON
+
+@app.route('/debito/<str:setorConsulta>/<str:idConsultado>', methods=['GET'])  #verifica se está em debito
+def debito(setorConsulta, idConsultado):
+    retorno = verificaDebito(idConsultado, setorConsulta)
+    return jsonify(retorno) #transformando a resposta em JSON
+
+@app.route('bloqueio/<str:setor>', methods=['POST'])  #bloqueia hidrômetro
+def bloquear(id):
+    user = bloqueiaHidrometro(id)
+    return jsonify(user)
+
+#rotas do usuário
+
+@app.route('historico/<str:setor>/<str:id>',  methods=['GET'])  #visualizar histórico daquele usuário
+def histórico(setor, id):
+    historico = verificaHistorico(id, setor)
+    return jsonify(historico)
+
+@app.route('consumo-total/<str:setor>/<str:id>', methods=['GET'])  #visualizar consumo daquele usuário
+def consumo(setor, id):
+    consulta = verificaConsumo(id, setor)
+    return jsonify(consulta)
+
+@app.route('valorconta/<str:setor>/<str:id>', methods=['GET'])  #buscar o valor da conta
+def valorConta(setor, id):
+    consulta = verificaValorConta(id, setor)
+    return jsonify(consulta)
+
+@app.route('pagamento/<str:setor>/<str:id>', methods=['GET'])  #pagar a conta
+def pagaConta(setor, id):
+    retornoPagamento = desbloqueiaHidrometro(id, setor)
+    return jsonify(retornoPagamento)
+
 """
 Ele chama a thread que se inscreve no tópico do hidrômetro
 """
@@ -83,5 +136,6 @@ Quando disconectamos
 def disconnect():
     print('Client disconnected',  request.sid)
 
+#inicializando a API
 if __name__ == '__main__':
     socketio.run(app)
