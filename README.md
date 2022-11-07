@@ -21,7 +21,8 @@
    - [Servidor](#Servidor)
    - [Nó](#Nó)
    - [Tela do usuário](#Usuário)
-   - [Tela do administrador](#Administrador)
+   - [Tela do administrador](#Administrador)![recording](https://user-images.githubusercontent.com/52046375/200215729-c20da6b6-062f-474a-a055-cc610f7960c9.gif)
+
    - [API REST](#APIREST)
    - [Banco de dados](#dados)
 - [Demonstração](#demonstraçao)
@@ -74,11 +75,13 @@
    4. Selecionar um deles para visualizar os dados com o menor tempo de latência possível;
    
    <h2>   1. Nenhum usuário deve ultrapasar a média do consumo.</h2>
-   <p align="center">
+  
+  <p align="center">
 <img src="https://media.discordapp.net/attachments/975905192069435395/1038247676577329253/image.png?width=597&height=422"/>
 </p>
    
-   
+
+
 resoluçã
 
 <h2>2. Um usuário não deve ultrapasar um valor máximo em metros cúbicos.</h2>
@@ -91,7 +94,8 @@ resoluçao
 resolução
 
 <h2>4. Selecionar um deles para visualizar os dados com o mennor tempo de latência possível.</h2>
-
+ 
+   ![recording](https://user-images.githubusercontent.com/52046375/200215750-3c9ea427-a549-4fdc-a514-0f6435508e5e.gif)
    
    
 
@@ -131,6 +135,5 @@ Visualização dos n hidrômetros, Visualizar hidrômetro selecionado,Bloqueio p
 <h2>- Banco de dados</h2>
 <p2> No banco de dados é manipulado as buscas, criações e atualizações nos dados. As alterações são feitas a partir dos nós da névoa. Ao criar um hidrômetro,é solicitado o setor a que ele pertence, nesse momento, é criado um banco para o setor (que é a névoa), caso não exista, e é inserido na tabela de hidrômetros, assim como, no momento que é criado um hidrômetro, também é criado uma tabela de histórico para ele. A cada interação com o banco é solicitado o id e o setor do hidrômetro para poder se buscar a tabela que ele existe. </p2> 
  
- # Demonstração 
- 
+
  # Considerações finais 
