@@ -203,7 +203,7 @@ def verificaValorConta(idConsultado, setorConsulta):
     status = result[0]
     if status == 0:
         print('Enviado com sucesso')
-        resultado = subscribeDebito(client) #chama o método que se inscreve no tópico
+        resultado = subscribeValorConta(client) #chama o método que se inscreve no tópico
         client.loop_forever()
         return resultado
     else:
@@ -213,7 +213,7 @@ def verificaValorConta(idConsultado, setorConsulta):
 def subscribeConsumo(client: mqtt_client):
     global listaAux
 
-    def on_message(client, userdata, msg):
+    def on_message(client, userdata, msg):        
         if(msg.payload.decode() != 'unsubscribe'):
             status = msg.payload.decode()   #a variável temp é aux para o demsempacotamento c o split               
             listaAux.append(status)            
@@ -232,7 +232,7 @@ def verificaConsumo(idConsultado, setorConsulta):
     status = result[0]
     if status == 0:
         print('Enviado com sucesso')
-        resultado = subscribeDebito(client) #chama o método que se inscreve no tópico
+        resultado = subscribeConsumo(client) #chama o método que se inscreve no tópico
         client.loop_forever()
         return resultado
     else:
@@ -247,3 +247,5 @@ def desbloqueiaHidrometro(id):
         return (id + 'desbloqueado com sucesso!')
     else:
         return 'Falha no envio'
+consumo = verificaValorConta('4855','2')
+print(consumo)

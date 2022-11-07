@@ -245,7 +245,8 @@ def retornaConsumo(id, client):
 
 #busca o valor da conta de hidrômetro específico 
 def retornaValorConta(id, client):    
-    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados   
+    result = pd.read_excel("historicoGeralNo.xlsx", index_col=0)  #lê a base de dados  
+    print(result) 
 
     pesquisa = 'ID ==' + str(id)
     filtered_df = result.query(pesquisa)
@@ -258,7 +259,7 @@ def retornaValorConta(id, client):
         print('Não existe hidrômetro matriculado com este ID')
         client.publish('valorConta/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
     else:
-        metrosC = totalLitros/1000 # se for retornado no banco de dados, já é tratada a informação, para que seja calculada a conta
+        metrosC = totalLitros/1000
         if totalLitros <= 6000:
             valorReais = 28,82
         if metrosC > 7 and 10:
@@ -278,10 +279,12 @@ def retornaValorConta(id, client):
         if metrosC > 50:
             valorReais = (metrosC - 50)*17.78 + 28.82
         resultado = valorReais[:4]
+        resultado = str(resultado)
         print('Valor total do gasto', resultado)
         client.publish('valorConta/', resultado)
             
     client.publish('valorConta/', 'unsubscribe') #quando acaba de enviar o conteúdo, envia uma mensagem para cancelar a inscrição
+
 
 #inscreve-se no tópico do servidor e trata as mensagens, de acordo com o tópico que está sendo recebido
 def subscribeServer(client: mqtt_client): 
