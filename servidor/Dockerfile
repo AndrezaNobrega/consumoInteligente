@@ -1,6 +1,7 @@
 FROM python:latest
 
 ADD servidor.py /servidor/
+ADD vazamento.xlsx /servidor/
 
 EXPOSE 1883
 

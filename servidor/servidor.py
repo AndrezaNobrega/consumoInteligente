@@ -105,30 +105,6 @@ def maiorGasto(maiorGasto_DataFrame, client, n):
     print('Cancelando inscrição')
     client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição
 
-'''Função atualizaArquivo
-dfTemporario: é o dataFrame que está na sendo utilizado neste ciclo do nó, este será limpo quando as informações forem '''
-def atualizaArquivo(dfTemporario):
-    #le as informações ja existentes
-    df_Geral = pd.read_excel('vazamento.xlsx', index_col=0)
-    print(df_Geral)    
-
-    if df_Geral.empty == False:
-        # pega os dois dataframes para concatenar
-        dfNovo = [df_Geral, dfTemporario]
-        print(df_Geral, dfTemporario)
-        out_df = pd.concat(dfNovo).reset_index(drop=True)
-
-        # escreve os DF concatenados para que existam todos
-        out_df.to_excel("vazamento.xlsx", index=False)
-        result = pd.read_excel("vazamento.xlsx", index_col=0)  
-        print('resultado', result)
-    else:
-        dfTemporario.to_excel("vazamento.xlsx", index=False)
-        result = pd.read_excel("vazamento.xlsx", index_col=0)  
-        print('resultado', result)
-        
-    
-
 def subscribeGasto(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Recebendo do {msg.topic}`")
@@ -207,9 +183,8 @@ def subscribeGasto(client: mqtt_client):
         elif assunto == 'vazando':
             idHidrometro = msg.payload.decode()
             print('Recebendo hidrômetro vazando', idHidrometro)  
-            dfTemporario =  pd.DataFrame(idHidrometro, columns= ['ID']) #transforma em dataframe
-            atualizaArquivo(dfTemporario) #atualiza arquivo
-                    
+            dfVazamento =  pd.DataFrame(idHidrometro, columns= ['ID']) #transforma em dataframe            
+            dfVazamento.to_excel("vazamento.xlsx", index=False)                    
     client.subscribe('maisGasto/Hidrometros')
     client.on_message = on_message
 

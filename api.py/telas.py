@@ -72,6 +72,8 @@ def menu():
             print('2) Visualização dos N maiores hidrômetros')
             print('3) Visualização dos hidrômetros com possível vazamento')
             print('4) Digite aqui para verificar se determinado hidrômetro está em débito')
+            print('5) Bloquear hidrômetro')
+            print('6) Visualiza hidrômetro em tempo real')
             opcao = input('Digite aqui a opção que deseja acessar: \n')
             if opcao == '1':
                 import requests
