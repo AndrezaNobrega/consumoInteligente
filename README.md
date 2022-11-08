@@ -12,10 +12,9 @@
 # Índice
 
 - [Pessoas desenvolvedoras](#desenvolvedoras)
-- [Acesso ao projeto](#Acesso)
 - [Tecnologias utilizadas](#Tecnologias)
 - [Solução](#Solução)
-- [Componentes](#componentes)
+- [Componentes](#Componentes)
    - [Broker](#Broker)
    - [Hidrômetro](#Hidrômetro)
    - [Servidor](#Servidor)
@@ -34,12 +33,9 @@
 <br /><a href="https://github.com/AndrezaNobrega">Andreza Nóbrega</a>
 <br /><a href="https://github.com/Evelynsuzarte">Evelyn Suzarte</a>
 
-# Acesso
- - colocar links do dockerhub
+
 
 # Tecnologias
-
-
 <ul>
   <li>MQTT</li>
   <li>Fog Computing</li>
@@ -81,59 +77,90 @@
  
   &emsp; A cada ciclo de contagem, como mostrado na imagem, os hidrômetros que foram bloqueados na contagem anterior são desbloqueados, e então, a lista de hidrômetros conectados é percorrida novamente e os que estiverem acima da média são bloqeuados.
 
-resoluçã
+
 
 <h2>2. Um usuário não deve ultrapasar um valor máximo em metros cúbicos.</h2>
  &emsp; No problema, foi adotado um "teto de gastos", a cada contagem que o nó recebe, ele verifica se o hidrômetro passou do valor de teto. Há um valor de teto "default", que é o zero, nada acontece até que seja enviado um valor de teto pelo administrador. O valor é enviado para o servidor central, o qual encaminha para todos os nós conectados, onde ocorre a verificação e os possíveis cortes.
 
 
-resoluçao
+
 
 <h2>3. Visualizar N hidrômetros de maior consumo.</h2>
 
 &emsp; A cada ciclo de contagem de um nó, é enviada uma lista ordena com hidrometros:gasto, o servidor central recebe e a ordena. O admin portanto, pode inserir o valor desejado para a visualização. Como o valor é indeterminado, pode ocorrer de não existir a quantidade pedida conectada à névoa, por isso, o servidor irá enviar todas as conexões de forma ordenada.
 
-resolução
+
 
 <h2>4. Selecionar um deles para visualizar os dados com o menor tempo de latência possível.</h2>
  
    ![recording](https://user-images.githubusercontent.com/52046375/200215750-3c9ea427-a549-4fdc-a514-0f6435508e5e.gif)
    
-&emsp; Para essa solução, foi usada a tecnologia de <br /><a href="https://www.educba.com/flask-websocket/">websockets</a>, neste caso da biblioteca Flask, (Flask-SocketIO)  que é uma tecnologia a qual torna possível abrir uma sessão de comunicação interativa entre o navegador do usuário e um servidor. Com esta API, você pode enviar mensagens para um servidor e receber respostas orientadas a eventos sem ter que consultar o servidor para obter uma resposta.
+&emsp; Para essa solução, foi usada a tecnologia de <a href="https://www.educba.com/flask-websocket/">websockets</a>, neste caso da biblioteca Flask (Flask-SocketIO),  que é uma tecnologia a qual torna possível abrir uma sessão de comunicação interativa entre o navegador do usuário e um servidor. Com esta API, você pode enviar mensagens para um servidor e receber respostas orientadas a eventos sem ter que consultar o servidor para obter uma resposta.
 
-&emsp; Nesse caso, a API se inscreve no tópico do hidrômetro, a API então envia as mensagem para o scrip JS, que exibe na página em em "tempo real".   
+&emsp; A API então se inscreve no tópico do hidrômetro, ela  envia as mensagem para o scrip JS, que exibe na página em em "tempo real".   
  
 # Componentes 
  
 <h2> - Broker</h2>
 
-<p2> O broker é um servidor que recebe todas as mensagens dos clientes e, em seguida, roteia essas mensagens para os clientes de destino relevantes. Esses clientes estão conectados ao broker através de tópicos, onde os clientes conectados se inscrevem (subscriber) para receber as mensagens que o tópico gera, e esse movimento de envio de mensagens ao tópico é chamado de publish. Esse modelo de operação de envio de mensagens compõe o protocolo MQTT (Message Queuing Telemetry Transport) que é um protocolo de mensagens leve para sensores e pequenos dispositivos otimizado para redes TCP/IP.<p2>
+<p2>  &emsp; O intermediário no processo de comunicação. Elementos que desejam publicar informações o fazem também através do broker, enviando-lhe as informações que possuem. Os elemtos que desejam receber as informações então se inscrevem no broker, para receber. Toda essa conexão é feita através de tópicos.
+ 
+&emsp; O tópico lembra o conceito de URI, com níveis separados por barras (/). Elementos da rede podem enviar diversos tópicos para o broker e subscritores podem escolher os tópicos que desejam subscrever.  Nesse projeto foi utilizado um broker, este então manipula todas as informações do projeto.<p2> Nesse projeto foi utilizado um broker, este então manipula todas as informações do projeto.
+ 
+![image](https://user-images.githubusercontent.com/52046375/200466617-8e3783c3-8636-427d-9c2a-cabea6365746.png)
+
+ 
+
 
  <h2> - Hidrômetro</h2>
 
-<p2> O hidrômetro funciona como o sensor do sistema, além dele enviar dados (servindo como publish) ele também recebe dados (servindo como subscriber) para gerenciamento do hidrômetro. Assim, nele podemos verificar a vazão de água atual, o consumo total do período, status de vazamento e pode ser bloqueado por dois motivos: estar em débito e consumo maior que a média de consumo de todos os hidrômetros. Eles estão conectados ao nó da nuvem, que também chamamos de setores, onde lá são gerenciados.</p2>
+<p2>  &emsp; O hidrômetro funciona como o sensor do sistema,  ao inicializar, é possível escolher uma "tendência" para esse dispositivo, ele pode ter um consumo alto, médio ou baixo. O hidrômentro envia mensagens para o nó, assim atuando como publisher, também como subscriber, quando recebe a mensagem de bloqueio e desbloqueio, que é feita via MQTT . Assim, nele podemos verificar a vazão de água atual, o consumo total do período, status de vazamento e pode ser bloqueado por dois motivos: estar em débito e consumo maior que a média de consumo de todos os hidrômetros. Eles estão conectados ao nó da nuvem, que por sua vez, como agrupamento é chamado de setor.</p2>
 
 <h2> - Servidor</h2>
  
-<p2> Esse servidor serve como um servidor geral para gerenciamento da nuvem, onde ele faz q conexão com o interface dos clientes (adm e cliente) e com os nós da nuvem. Ele faz apenas o gerenciamento de envio de dados entre essas duas partes.</p2> 
+<p2>  &emsp; O servidor central é responsável por manipular informações que precisam ser compartilhada entre todos os "setores", como enviando o teto de gastos para todos os nós, bem como  calcular a média geral de todo o sistema, elencar os hidrômetros com maior gasto de todo o sistema. Ou ainda, enviar todos os hidrômetros que possuem vazamento. O servidor também possui um  arquivo atrelado com todos os ID's de hidrômetros com possível vazamento. O servidor também atua como publisher e subscriber, enviando e recebendo informações.</p2> 
+ 
+ ![image](https://user-images.githubusercontent.com/52046375/200473044-2baaef25-5649-4e53-a127-4f040f239a1e.png)
 
-<h2>- Nó </h2>
-<p2> No nó da nuvem ficam conectados os hidrômetros que estão conectados a um banco de dados que cada nó tem. Assim, qualquer ação de gerenciamento como de bloqueio, desbloqueio, visualização de consumo e outros, são feitos através do nó.</p2>
+ 
+   <p align="center">
+ *Exemplificação dos setores*
+</p>
+
+
+
+<h2> - Nó </h2>
+<p2>  &emsp;  Os nós todos juntos compõe a névoa do sistema, eles possuem como banco de dados três planilhas: dadosGerais, que possui uma ocorrência de cada hidrômetro conectado com as informações mais atualizadas, o historicoGeralNo, onde estão presentes todas as informações de todos os nós, também há a planilha de pagamentos, onde estão as datas que devem ocorrer o pagamento das contas dos hidrômetros. 
+ 
+ &emsp; O nó é o elemento com mais responsabilidades em todo o projeto, ele manipula as informações dos hidrômetros que são do seu setor, verificando seu histórico, verificando débito, retornando consumo e o valor da conta. Também, calcula a média, bloqueia e desbloqueia com base nesta média e no teto de gastos, e também retorna os hidrômetros elencados, com os com maiores gastos. 
+ </p2>
 
 <h2>- Tela do usuário</h2>
-<p2> Na tela do usuário ele tem acesso a funções de visualização dos dados de um hidrômetro, consumo atual, pagar a conta e valor da conta.
-As solicitações do usuário são gerenciadas pela API, que são enviadas ao servidor, que se conecta ao nó ( que também chamamos de setor).</p2>
+<p2> A tela do usuário consome a API usando a biblioteca requests, essa disponibiliza as opções. Para entrar na tela, deve-se informar sua ID e setor</p2>
+ <ul>
+  <li>1. Histórico de gastos</li>
+  <li>2. Litros acumulados </li>
+  <li>3. Valor da sua conta</li>
+  <li>4. Pagar conta</li>
+</ul>
 
 <h2>- Tela do administrador</h2>
-<p2> Na tela da administrador ele tem acesso a funções de visualização dos dados de um hidrômetro, consumo atual, pagar a conta e valor da conta.
-As solicitações do usuário são gerenciadas pela API, que são enviadas ao servidor, que se conecta ao nó ( que também chamamos de setor.</p2>
-Visualização dos n hidrômetros, Visualizar hidrômetro selecionado,Bloqueio por valor de teto de gastos,Visualizar hidrômetros com vazamento 
+<p2> A tela do administrador consome a API usando a biblioteca requests, essa disponibiliza as opções. Para entrar na tela, deve-se informar a senha do adm *1234*</p2>
+ <ul>
+  <li>1. Envia teto de gastos</li>
+  <li>2. Lista os N maiores hidrômetros </li>
+  <li>3. Lista vazamento</li>
+  <li>4. Verifica débito</li>
+  <li>5. Bloqueio determinado hidrômetro</li>
+  <li>6. Visualiza hidrômetro em tempo real</li>
+</ul>
 
 <h2>- API REST</h2>
-<p2> A API faz a ligação entre a interface do administrador e do cliente, e todo o restante das conexões. <p2> 
+<p2>  &emsp; A api se conecta com o nó e com o servidor via conexões MQTT, cada método envia uma mensagem para o elemento responsável por possui aquela informação, logo em seguida se inscreve no tópico para receber a resposta. A cada requisição é aberta e fechada a conexão. Todos os métodos seguem esse padrão.<p2> 
 
 <h2>- Banco de dados</h2>
-<p2> No banco de dados é manipulado as buscas, criações e atualizações nos dados. As alterações são feitas a partir dos nós da névoa. Ao criar um hidrômetro,é solicitado o setor a que ele pertence, nesse momento, é criado um banco para o setor (que é a névoa), caso não exista, e é inserido na tabela de hidrômetros, assim como, no momento que é criado um hidrômetro, também é criado uma tabela de histórico para ele. A cada interação com o banco é solicitado o id e o setor do hidrômetro para poder se buscar a tabela que ele existe. </p2> 
+<p2>  &emsp; O "banco de dados" do projeto consiste em planilhas utilizadas para organizar os dados e dar a persistência. Foi utilizado durante todo o projeto a biblioteca Pandas para manipular os dados, inclusive para exportar os dados para a planilha e para ler novamente.</p2> 
  
 
  # Considerações finais 
+<p2> &emsp; O projeto consegue realizar tudo dentro do previsto. Trouxe desafios na implementação e compreensão de protocolo mqtt, também possibilitou um estudo e reflexão mais aprofundada no que diz respeito ao que é a computação em névoa/borda. Algo que poderia ser adicionado em outras versões, seria adicionar mais brokers, visto que é um servidor, onde manipula todas as informações. Também pode ser modificada a interface no terminal, e inserir uma interface web. </p2> 
