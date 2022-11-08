@@ -1,6 +1,7 @@
 import requests
 
 def menu():
+    import requests
     print('_______________________________________________________')
     print('####################### M E N U #######################')
     print('_______________________________________________________')
@@ -12,7 +13,8 @@ def menu():
         print('####################### M E N U #######################')
         print('_____________________U S U Á R I O_____________________')
         print('')
-        resposta = input('Digite sua matrícula: ')
+        id = input('Digite sua matrícula: ')
+        setor = input('Digite aqui o seu setor:')
         print('Bem vindo',  resposta)   
         print('1) Histórico do consumo') 
         print('2) Litros Acumulados')
@@ -21,64 +23,39 @@ def menu():
         print('5) Retornar para o menu')
         opcao = input('Digite a opção que deseja escolher: \n')  
         if opcao == '1':
-            url = "http://172.16.103.6:5002/users"
             print('HISTÓRICO DE CONSUMO:')            
-            payload = {"search": resposta}
-            print('')
-            print('Aguarde alguns instantes enquanto a consulta é realizada')
-            print('')
-            headers = {"Content-Type": "application/json"}
-            response = requests.request("GET", url, json=payload, headers=headers)
+            import requests
+            url = "http://127.0.0.1:5000/consumo-total/"+ setor + '/' + id
+            payload = ""
+            response = requests.request("GET", url, data=payload)
+            print(' Horário| Vazão | Litros utilizados')
             print(response.text)
             menu()
         elif opcao == '2':
-            url = "http://172.16.103.6:5002/litros"
-            print('TOTAL DE LITROS CONSUMIDOS:')
-            print('')
-            print('Aguarde alguns instantes enquanto a consulta é realizada')
-            print('')
-            payload = {"search": resposta}
-            headers = {"Content-Type": "application/json"}
-            response = requests.request("GET", url, json=payload, headers=headers)
+            print('Litros acumulados:')            
+            import requests
+            url = "http://127.0.0.1:5000/histórico/"+ setor + '/' + id
+            payload = ""
+            response = requests.request("GET", url, data=payload) 
             print(response.text)
             menu()
         elif opcao == '3':
-            print('Valor da sua conta')
-            print('')
-            print('Aguarde alguns instantes enquanto a consulta é realizada')
-            print('')
-            url = "http://172.16.103.6:5002/valor"
-            payload = {"search": resposta}
-            headers = {"Content-Type": "application/json"}
-            response = requests.request("GET", url, json=payload, headers=headers)
+            print('Valor da sua conta:')            
+            import requests
+            url = "http://127.0.0.1:5000/valorconta/"+ setor + '/' + id
+            payload = ""
+            response = requests.request("GET", url, data=payload) 
             print(response.text)
             menu()
         elif opcao == '4':
-            print('Efetuar o pagamento da sua conta')
-            url = "http://172.16.103.6:5002/ip"
-            payload = {"search": resposta}
-            headers = {"Content-Type": "application/json"}
-            response1 = requests.request("GET", url, json=payload, headers=headers)            
-            url = "http://172.16.103.6:5002/valor"
-            payload = {"search": resposta}
-            headers = {"Content-Type": "application/json"}
-            response = requests.request("GET", url, json=payload, headers=headers)
+            print('Realizando o pagamento:')            
+            import requests
+            url = "http://127.0.0.1:5000/pagamento/"+ setor + '/' + id
+            payload = ""
+            response = requests.request("GET", url, data=payload) 
             print(response.text)
-            print(response1.text)
-            print('Código da conta, digite para efetuar o pagamento')
-            ip = str(input('Digite: \n'))
-            url = "http://172.16.103.6:5002/desbloqueia"
-
-            payload = {
-                "search": resposta,
-                "ip": ip
-            }
-            headers = {"Content-Type": "application/json"}
-
-            response = requests.request("POST", url, json=payload, headers=headers)
-
-            print(response.text)
-            menu()
+            print('O pagamento foi realizado com sucesso')
+            menu()        
         elif opcao == '5':
             menu()
     else:
@@ -151,7 +128,6 @@ def menu():
         else:
             print('Senha errada!')
             menu()
-
 menu()
 
 
