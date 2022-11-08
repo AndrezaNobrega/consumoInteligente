@@ -57,7 +57,7 @@ def ultimaoOcorrencia(db):
             time.sleep(0.1)   
     #transforma em dataFrame         
     tabelaDB =  pd.DataFrame(unicaOcorencia, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento'])    
-    #tabelaDB.to_excel("dadosGerais.xlsx", index=True)
+    tabelaDB.to_excel("dadosGerais.xlsx", index=True)
     #dataFrame com a última ocrrência de cada ID
     print('PRINT TABELA DB \n',tabelaDB)
     return tabelaDB
@@ -410,7 +410,7 @@ def subscribeServer(client: mqtt_client):
             print('_______________________________________________________________________________')  
             dado = recebeHidrometros(client, msg)
             tabelaHistorico =  pd.DataFrame(dado, columns= ['Litros Utilizados', 'Horário', 'Vazao atual', 'ID', 'Situacao', 'Data de pagamento']) 
-            #tabelaHistorico.to_excel('historicoGeralNo.xlsx', index = True) #envia para o arquivo
+            tabelaHistorico.to_excel('historicoGeralNo.xlsx', index = True) #envia para o arquivo
             
 
     

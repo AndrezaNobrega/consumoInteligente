@@ -63,6 +63,7 @@ def background_thread():
 """
 setor e id como parametros
 """
+#Visualizar hidrômetro em tempo real
 @app.route('/hidrometro/<string:setor>/<string:id>')
 def index(setor, id):   
     client.subscribe('Hidrometros/'+ setor + '/'+ id)
