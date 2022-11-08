@@ -80,11 +80,18 @@ def verificaDebito(id, client):
 
 
 
-def listaVazamento(client):    
-    vazamento = pd.read_excel("vazamento.xlsx", index_col=0)  #lê a base de dados   
-    for usuario in vazamento:
-        print (usuario)
-    print('unsubscribe')
+def listaVazamento():    
+    vazamento = pd.read_excel("vazamento.xlsx", index_col=0)  #lê a base de dados  
+    vazamento = vazamento.values.tolist()
+    if len(vazamento) == 0: #se a lista de vazamento está vazia, ele retorna zero
+        print('Não ha vazamento')
+        time.sleep(0.5)
+    else:
+        for usuario in vazamento:
+            usuario = str(usuario)    
+            print (usuario)
+
+                
 
 
 def retornaHistorico(id, client):    
@@ -170,3 +177,4 @@ def retornaValorConta(id):
 
 
 
+listaVazamento()

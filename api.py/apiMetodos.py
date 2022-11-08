@@ -3,7 +3,7 @@ from paho.mqtt import client as mqtt_client
 from datetime import *
 
 #broker = 'broker.emqx.io'
-broker = 'localhost'  
+broker = '172.16.103.14' #ip do broker
 port = 1883
 
 client_id =str(random.randint(0, 1000))

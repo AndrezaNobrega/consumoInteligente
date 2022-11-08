@@ -9,7 +9,7 @@ from flask import Flask, jsonify
 
 
 #broker = 'broker.emqx.io'
-broker = 'localhost'  
+broker = '172.16.103.14' #ip do broker
 port = 1883
 
 client_id =str(random.randint(0, 1000))
@@ -139,4 +139,4 @@ def disconnect():
 
 #inicializando a API
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, host='172.16.103.6') #ip da máquina com a api

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
-broker = 'localhost'
+broker = '172.16.103.14'
 port = 1883
 username = 'NoNevoa'   #172.16.103.14
 password = 'public'
@@ -29,9 +29,6 @@ listaPagamentos = [] #lista com o momento de pagamentos para cada hidrômetro
 
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
 
-'''
-                    TIRAR COMENTÁRIOS DA ESCRITA NO ARQUIVO
-'''
 
 
 #recebe como parâmetro a matriz do nó
