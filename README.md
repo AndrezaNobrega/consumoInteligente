@@ -24,7 +24,6 @@
    - [Tela do administrador](#Administrador)
    - [API REST](#APIREST)
    - [Banco de dados](#dados)
-- [Demonstração](#demonstraçao)
 - [Considerações finais](#consideracoes)
 
 
@@ -46,7 +45,7 @@
   <li>Fog Computing</li>
   <li>Python</li>
   <li>Flask</li>
-  <li>SQLite</li>
+  <li>Pandas</li>
 </ul>
 
 
@@ -78,29 +77,31 @@
   <p align="center">
 <img src="https://media.discordapp.net/attachments/975905192069435395/1038247676577329253/image.png?width=597&height=422"/>
 </p>
-   
-
+ &emsp; A solução para essa restrição foi dada da seguinte maneira: 1. Os nós fazem um cálculo de suas respectivas médias. 2. Após isso, essas médias são enviadas para o servidor central, o qual faz o cálculo da média geral e retorna para todos os nós da rede. Esse corte é feito baseado em "ciclos", ao ser inicializado, o nó envia uma mensagem de inicialização, essa mensagem é usada pelo servidor central para verficar se todos os nós enviaram suas médias, caso a afirmação seja positiva, ele envia a média geral para todos os nós conectados. 
+ 
+  &emsp; A cada ciclo de contagem, como mostrado na imagem, os hidrômetros que foram bloqueados na contagem anterior são desbloqueados, e então, a lista de hidrômetros conectados é percorrida novamente e os que estiverem acima da média são bloqeuados.
 
 resoluçã
 
 <h2>2. Um usuário não deve ultrapasar um valor máximo em metros cúbicos.</h2>
+ &emsp; No problema, foi adotado um "teto de gastos", a cada contagem que o nó recebe, ele verifica se o hidrômetro passou do valor de teto. Há um valor de teto "default", que é o zero, nada acontece até que seja enviado um valor de teto pelo administrador. O valor é enviado para o servidor central, o qual encaminha para todos os nós conectados, onde ocorre a verificação e os possíveis cortes.
 
 
 resoluçao
 
 <h2>3. Visualizar N hidrômetros de maior consumo.</h2>
 
+&emsp; A cada ciclo de contagem de um nó, é enviada uma lista ordena com hidrometros:gasto, o servidor central recebe e a ordena. O admin portanto, pode inserir o valor desejado para a visualização. Como o valor é indeterminado, pode ocorrer de não existir a quantidade pedida conectada à névoa, por isso, o servidor irá enviar todas as conexões de forma ordenada.
+
 resolução
 
-<h2>4. Selecionar um deles para visualizar os dados com o mennor tempo de latência possível.</h2>
+<h2>4. Selecionar um deles para visualizar os dados com o menor tempo de latência possível.</h2>
  
    ![recording](https://user-images.githubusercontent.com/52046375/200215750-3c9ea427-a549-4fdc-a514-0f6435508e5e.gif)
    
-   
+&emsp; Para essa solução, foi usada a tecnologia de <br /><a href="https://www.educba.com/flask-websocket/">websockets</a>, neste caso da biblioteca Flask, (Flask-SocketIO)  que é uma tecnologia a qual torna possível abrir uma sessão de comunicação interativa entre o navegador do usuário e um servidor. Com esta API, você pode enviar mensagens para um servidor e receber respostas orientadas a eventos sem ter que consultar o servidor para obter uma resposta.
 
-
-
-   
+&emsp; Nesse caso, a API se inscreve no tópico do hidrômetro, a API então envia as mensagem para o scrip JS, que exibe na página em em "tempo real".   
  
 # Componentes 
  
