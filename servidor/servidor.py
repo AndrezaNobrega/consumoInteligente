@@ -83,27 +83,30 @@ def maiorGasto(maiorGasto_DataFrame, client, n):
     ordenado = maiorGasto_DataFrame.sort_values('Litros Utilizados', ascending=False)
     print('dataframe ordenado', ordenado)
     listaOrdenado = ordenado.values.tolist()
-    if int(n) > len(listaOrdenado):        
+    print(listaOrdenado)
+    if int(n) > len(listaOrdenado) or int(n) == len(listaOrdenado):   
+        print('primeira condição')     
         for hidro in listaOrdenado:
-            if len(listaOrdenado)> contador:
                 contador=+1
+                print('ID:', hidro[0], 'Litros utilizados:', hidro[1])
+                hidroAux = str(hidro[0])+ ',' + str(hidro[1]) + ',' #para facilitar a parte do envio
+                print('enviando', hidroAux)
+                client.publish("nHidrometros/", hidroAux)
+
+        print('Cancelando inscrição')
+        client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição          
+    else:
+        print('Segunda condição')
+        for hidro in listaOrdenado:
+            if contador != n:
+                contador =+1
                 print('ID:', hidro[0], 'Litros utilizados:', hidro[1])
                 hidroAux = str(hidro[0])+ ',' + str(hidro[1]) + ',' #para facilitar a parte do envio
                 client.publish("nHidrometros/", hidroAux)
             else:
-                print('Cancelando inscrição')
-                client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição          
-
-    for hidro in listaOrdenado:
-        if contador != n:
-            contador =+1
-            print('ID:', hidro[0], 'Litros utilizados:', hidro[1])
-            hidroAux = str(hidro[0])+ ',' + str(hidro[1]) + ',' #para facilitar a parte do envio
-            client.publish("nHidrometros/", hidroAux)
-        else:
-            break
-    print('Cancelando inscrição')
-    client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição
+                break
+        print('Cancelando inscrição')
+        client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição
 
 def subscribeGasto(client: mqtt_client):
     def on_message(client, userdata, msg):

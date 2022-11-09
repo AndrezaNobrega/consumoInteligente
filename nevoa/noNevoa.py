@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
-broker = '172.16.103.14'
+broker = '	172.16.103.14'
 port = 1883
 username = 'NoNevoa'   #172.16.103.14
 password = 'public'
@@ -146,8 +146,9 @@ def retornaHistorico(id, client):
         print('Não existe hidrômetro matriculado com este ID')
         client.publish('historico/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
     else:
-        for coluna in historico:
+        for coluna in historico:                        
             linhaHistorico = str(coluna[0]) + ';'+ str(coluna[1]) + ';'+  str(coluna[4])
+            print('enviando para a api', linhaHistorico)
             client.publish('historico/', linhaHistorico)
             
     client.publish('historico/', 'unsubscribe') #quando acaba de enviar o conteúdo, envia uma mensagem para cancelar a inscrição
@@ -290,14 +291,15 @@ def retornaValorConta(id, client):
     pesquisa = 'ID ==' + str(id)
     filtered_df = result.query(pesquisa)
     ordenado = filtered_df.sort_values('Litros Utilizados', ascending=False) #ordena para pegar o valor mais recente
-    indice = ordenado.iloc[1]
+    indice = ordenado.iloc[0]
     resultado = indice.values.tolist()
-    totalLitros = resultado[1] #pega o valor específico
+    totalLitros = resultado[0] #pega o valor específico
     resultado = str(resultado)
     if len(resultado) == 0:
         print('Não existe hidrômetro matriculado com este ID')
         client.publish('valorConta/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
     else:
+        totalLitros = int(totalLitros)
         metrosC = totalLitros/1000
         if totalLitros <= 6000:
             valorReais = 28,82

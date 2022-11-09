@@ -25,7 +25,7 @@ def menu():
         if opcao == '1':
             print('HISTÓRICO DE CONSUMO:')            
             import requests
-            url = "http://127.0.0.1:5000/consumo-total/"+ setor + '/' + id
+            url = "http://172.16.103.6:5000/consumo-total/"+ setor + '/' + id
             payload = ""
             response = requests.request("GET", url, data=payload)
             print(' Horário| Vazão | Litros utilizados')
@@ -34,7 +34,7 @@ def menu():
         elif opcao == '2':
             print('Litros acumulados:')            
             import requests
-            url = "http://127.0.0.1:5000/histórico/"+ setor + '/' + id
+            url = "http://172.16.103.6:5000/histórico/"+ setor + '/' + id
             payload = ""
             response = requests.request("GET", url, data=payload) 
             print(response.text)
@@ -42,7 +42,7 @@ def menu():
         elif opcao == '3':
             print('Valor da sua conta:')            
             import requests
-            url = "http://127.0.0.1:5000/valorconta/"+ setor + '/' + id
+            url = "http://172.16.103.6:5000/valorconta/"+ setor + '/' + id
             payload = ""
             response = requests.request("GET", url, data=payload) 
             print(response.text)
@@ -50,7 +50,7 @@ def menu():
         elif opcao == '4':
             print('Realizando o pagamento:')            
             import requests
-            url = "http://127.0.0.1:5000/pagamento/"+ setor + '/' + id
+            url = "http://172.16.103.6:5000/pagamento/"+ setor + '/' + id
             payload = ""
             response = requests.request("GET", url, data=payload) 
             print(response.text)
@@ -78,7 +78,7 @@ def menu():
             if opcao == '1':
                 import requests
                 teto = str(input('Digite aqui o teto de gastos que deseja inserir:'))
-                url = "http://127.0.0.1:5000/teto/" + teto
+                url = "http://172.16.103.61:5000/teto/" + teto
                 payload = " "
                 headers = {"Content-Type": "application/json"}
                 response = requests.request("PATCH", url, data=payload, headers=headers)
@@ -87,14 +87,14 @@ def menu():
             elif opcao == '2':   
                 print('Visualização dos N maiores hidrômetros') 
                 n = str(input('Digite o número de hidrômetros que deseja visualizar:'))
-                url = "http://127.0.0.1:5000/listar/" + n
+                url = "http://172.16.103.6:5000/listar/" + n
                 payload = ""
                 response = requests.request("GET", url, data=payload)
                 print(response.text)
                 menu()
             elif opcao == '3':
                 print('Visualizando IDs de hidrômetros com possível vazamento')
-                url = "http://127.0.0.1:5000/vazamento"
+                url = "http://172.16.103.6:5000/vazamento"
                 payload = ""
                 response = requests.request("GET", url, data=payload)
                 print(response.text)
@@ -103,7 +103,7 @@ def menu():
                 print('Verificar se determinado hidrômetro está em débito')
                 id = str(input('Digite aqui o id do hidrômetro que deseja pesquisar:'))
                 setor = str(input('Digite aqui o setor do hidrômetro que deseja pesquisar:'))
-                url = "http://127.0.0.1:5000/debito/"+ setor + '/' + id
+                url = "http://172.16.103.6:5000/debito/"+ setor + '/' + id
                 headers = {"Content-Type": "application/json"}
                 response = requests.request("GET", url, headers=headers)
                 print(response.text)
@@ -111,7 +111,7 @@ def menu():
                 print('Bloquear hidrômetro que está em débito')
                 import requests
                 id = str(input('Digite aqui o id do hidrômetro que será bloqueado'))
-                url = "http://127.0.0.1:5000/bloqueio/" + id
+                url = "http://172.16.103.6:5000/bloqueio/" + id
                 payload = ""
                 response = requests.request("POST", url, data=payload)
                 print('Status:')                
@@ -120,7 +120,7 @@ def menu():
                 print('Visualizar hidrômetro em tempo real')
                 id = str(input('Digite aqui o id do hidrômetro que deseja pesquisar:'))
                 setor = str(input('Digite aqui o setor do hidrômetro que deseja pesquisar:'))
-                url = "http://127.0.0.1:5000/hidrometro/"+ setor + '/' + id
+                url = "http://172.16.103.6:5000/hidrometro/"+ setor + '/' + id
                 print('Abra o navegador em ip+:5000/hidrometro/')
                 payload = ""
                 response = requests.request("GET", url, data=payload)

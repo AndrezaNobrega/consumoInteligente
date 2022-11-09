@@ -3,7 +3,7 @@ from paho.mqtt import client as mqtt_client
 from datetime import *
 
 #broker = 'broker.emqx.io'
-broker = '172.16.103.14' #ip do broker
+broker = '	172.16.103.14' #ip do broker
 port = 1883
 
 client_id =str(random.randint(0, 1000))
@@ -32,13 +32,13 @@ client = connect_mqtt()
 def subscribeNhidrometros(client: mqtt_client):
     global conexoesLista
     global listaAux
-
+    print('chamou')
     def on_message(client, userdata, msg):
         if(msg.payload.decode() != 'unsubscribe'):
             idHidro, litrosUtilizados, *temp = msg.payload.decode().split(',')    #a variável temp é aux para o demsempacotamento c o split
             print(idHidro, litrosUtilizados)      
-            listaAux.append(idHidro)
-            listaAux.append(float(litrosUtilizados))
+            listaAux.append('ID:'+idHidro)
+            listaAux.append('Litros Utilizados:'+litrosUtilizados)
             print('Id', idHidro, '\n Litros utilizados:', litrosUtilizados)
             conexoesLista.append(listaAux)
         else:
@@ -86,7 +86,7 @@ def nHidrometros(n):
     status = result[0]
     if status == 0:
         print('Enviado com sucesso')
-        resultado = subscribeDebito(client)
+        resultado = subscribeNhidrometros(client)
         client.loop_forever()
         return resultado
     else:
@@ -160,9 +160,9 @@ def subscribeHistorico(client: mqtt_client):
     def on_message(client, userdata, msg):
         if(msg.payload.decode() != 'unsubscribe'):
             horario, vazao, litrosUtilizads, *temp = msg.payload.decode().split(';')    #a variável temp é aux para o demsempacotamento c o split     
-            listaAux.append(horario)
-            listaAux.append(vazao)
-            listaAux.append(litrosUtilizads)
+            listaAux.append('litros utilizados:'+horario)
+            listaAux.append('horario:'+vazao)
+            listaAux.append('vazao:'+litrosUtilizads)
             print(horario, vazao, litrosUtilizads)
             
             conexoesLista.append(listaAux)           

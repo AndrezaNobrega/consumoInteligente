@@ -106,7 +106,6 @@ def histórico(setor, id):
 def consumo(setor, id):
     consulta = verificaConsumo(id, setor)
     return jsonify(consulta)
-
 @app.route('/valorconta/<string:setor>/<string:id>', methods=['GET'])  #buscar o valor da conta
 def valorConta(setor, id):
     consulta = verificaValorConta(id, setor)
