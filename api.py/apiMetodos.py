@@ -3,7 +3,7 @@ from paho.mqtt import client as mqtt_client
 from datetime import *
 
 #broker = 'broker.emqx.io'
-broker = '	172.16.103.14' #ip do broker
+broker = 'localhost' #ip do broker
 port = 1883
 
 client_id =str(random.randint(0, 1000))
@@ -32,7 +32,6 @@ client = connect_mqtt()
 def subscribeNhidrometros(client: mqtt_client):
     global conexoesLista
     global listaAux
-    print('chamou')
     def on_message(client, userdata, msg):
         if(msg.payload.decode() != 'unsubscribe'):
             idHidro, litrosUtilizados, *temp = msg.payload.decode().split(',')    #a variável temp é aux para o demsempacotamento c o split
@@ -81,6 +80,7 @@ def enviaTetoMetodo(teto):
 #método retorna os n hidrômetros com o maior consumo
 #n: é o número dr hidrômetros que você deseja receber
 def nHidrometros(n): 
+    listaAux.clear()
     client = connect_mqtt()    
     result = client.publish("api/nHidrometros", str(n)) 
     status = result[0]
@@ -95,6 +95,7 @@ def nHidrometros(n):
 #Envia para o nó responsábel pelo hidrômetro
 #verifica se hidrômetro específico está em débito
 def verificaDebito(idConsultado, setorConsulta):
+    listaAux.clear()
     client = connect_mqtt() 
     result = client.publish("api/"+setorConsulta+ "/debito", str(idConsultado))
     status = result[0]
@@ -129,6 +130,7 @@ def subscribeVazamento(client: mqtt_client):
 #Envia para o servidor central
 #lista o vazamento de todo o projeto
 def verificaVazamento():  
+    listaAux.clear()
     client = connect_mqtt()   
     result = client.publish("api/vazando", 'consulta') 
     status = result[0]
@@ -143,6 +145,7 @@ def verificaVazamento():
 #Envia mensagem para o hidrômetro específico
 #bloqueia o hidrômetro com base em sua ID
 def bloqueiaHidrometro(id):
+    listaAux.clear()
     client = connect_mqtt() 
     mensagemBloqueio = 'bloquear/'+ str(id) 
     result = client.publish("bloqueio/api", mensagemBloqueio)
@@ -180,6 +183,7 @@ def subscribeHistorico(client: mqtt_client):
 # idConsultado: é necessário informar o seu id
 # setorConsulta: é necessário informar o setor que será consultado
 def verificaHistorico(idConsultado, setorConsulta):
+    listaAux.clear()
     client = connect_mqtt() 
     result = client.publish("api/"+setorConsulta+ "/historico", str(idConsultado))
     status = result[0]
@@ -212,6 +216,7 @@ def subscribeValorConta(client: mqtt_client):
 #Envia para o setor responsável
 #verifica se hidrômetro específico está em débito
 def verificaValorConta(idConsultado, setorConsulta):
+    listaAux.clear()
     client = connect_mqtt() 
     result = client.publish("api/"+setorConsulta+ "/valorConta", str(idConsultado))
     status = result[0]
@@ -244,6 +249,7 @@ def subscribeConsumo(client: mqtt_client):
 #Envia para o setor responsável pelo nó
 #verifica o total de litros consumidos de um hidrômetro específico
 def verificaConsumo(idConsultado, setorConsulta):
+    listaAux.clear()
     client = connect_mqtt() 
     result = client.publish("api/"+setorConsulta+ "/consumo", str(idConsultado))
     status = result[0]
@@ -258,6 +264,7 @@ def verificaConsumo(idConsultado, setorConsulta):
 #Esse faz o envio para o hidrômetro e para o nó responsável 
 #desbloqueia o hidrômetro com base em sua ID, também, muda a data de pagamento
 def desbloqueiaHidrometro(id, setorConsulta):
+    listaAux.clear()
     client = connect_mqtt() 
     mensagemBloqueio = 'desbloquear/'+ str(id)  #envia mensagem de desbloqueio
     result = client.publish("bloqueio/api", mensagemBloqueio)

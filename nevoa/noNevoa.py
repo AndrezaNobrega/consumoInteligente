@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
-broker = '	172.16.103.14'
+broker = 'localhost'
 port = 1883
 username = 'NoNevoa'   #172.16.103.14
 password = 'public'
@@ -146,8 +146,9 @@ def retornaHistorico(id, client):
         print('Não existe hidrômetro matriculado com este ID')
         client.publish('historico/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
     else:
-        for coluna in historico:                        
-            linhaHistorico = str(coluna[0]) + ';'+ str(coluna[1]) + ';'+  str(coluna[4])
+        for coluna in historico:  
+            print(coluna)                      
+            linhaHistorico = str(coluna[0]) + ';'+ str(coluna[1]) + ';'+  str(coluna[2])
             print('enviando para a api', linhaHistorico)
             client.publish('historico/', linhaHistorico)
             
@@ -197,17 +198,20 @@ def maiorGasto(tabelaDB):
 def bloqueioTetoGasto(tabelaDB, tetoGasto, client):    
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio    
     print('BLOQUEIO TETO DE GASTOS COM HIDRÔMETROS QUE GASTARAM MAIS QUE ', tetoGasto)
-    bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto, ['ID']] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
+    tetoGasto = float(tetoGasto)
+    bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
+    print('Lista hidrômetros que ultrapassaram valor de bloqueio')
     for id in idTetoGastos:
-        #manipularBanco.bloquearStatusHidrometro_Media(id,setorNevoa)
-        #manipularBanco.gerarHistorico(id,setorNevoa,"Bloqueado por teto de gasto",vazao_aux)
+        print(id)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         print('________________________________________________________________________________')  
         print(mensagemBloqueio)    
         print('________________________________________________________________________________')  
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
-    return idTetoGastos
+        return idTetoGastos
+
+
 
 #Conecta-se ao broker
 def connect_mqtt() -> mqtt_client:
@@ -272,7 +276,7 @@ def retornaConsumo(id, client):
     
     if indice.empty == True:
         print('Não existe hidrômetro matriculado com este ID')
-        client.publish('consumo/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
+        client.publish('consumo/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'verifique' + ';')
     else:
         resultado = indice.values.tolist()    
         resultado = resultado[0] #pega o valor específico
@@ -297,7 +301,7 @@ def retornaValorConta(id, client):
     resultado = str(resultado)
     if len(resultado) == 0:
         print('Não existe hidrômetro matriculado com este ID')
-        client.publish('valorConta/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'x' + ';')
+        client.publish('valorConta/', 'Não existe hidrômetro matriculado com este ID' + ';'+ id + ';'+ 'verifique' + ';')
     else:
         totalLitros = int(totalLitros)
         metrosC = totalLitros/1000
@@ -372,6 +376,7 @@ def subscribeServer(client: mqtt_client):
                 print('O teto de gastos foi alterado para', teto)
                 tetoGasto = teto
                 tabela = ultimaoOcorrencia(dado)
+                print(tabela)
                 listaHidrometrosBloqueados = bloqueioTetoGasto(tabela, tetoGasto, client) #quando recebe o novo teto de gastos, ele puxa a tabela de ocorrências dos hidrômetros. A partir daí, já acontece  bloqueio
                 #todos os hidrômetros que foram bloqueados, são add à lista de hidrômetros bloqueados, para que a cada ciclo ocorra a verficação
         elif aux == 'api':
@@ -389,6 +394,7 @@ def subscribeServer(client: mqtt_client):
                 print(idPedido)  
                 retornaConsumo(idPedido, client)               
             if id == 'valorConta': #valor da conta
+                print('pedido valor da conta')
                 idPedido = msg.payload.decode()
                 print(idPedido) 
                 retornaValorConta(idPedido, client) 

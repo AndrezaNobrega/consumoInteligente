@@ -5,7 +5,7 @@ import pandas as pd
 
 
 #broker = 'broker.emqx.io' broker público, se necessário
-broker = '172.16.103.14'
+broker = 'localhost'
 port = 1883
 topic = 'NoNevoa/#'
 client_id = str(random.randint(0, 100))
@@ -158,8 +158,10 @@ def subscribeGasto(client: mqtt_client):
                 print(nHidrometros) #aqui vamos verificar quantos hidrômetros são 
                 maiorGasto(maiorGasto_DataFrame, client, nHidrometros) #tratamento
 
-            if setor == 'vazando': #requisição vazamento                                
-                vazamento = pd.read_excel("vazamento.xlsx", index_col=0)  #lê a base de dados  
+            if setor == 'vazando': #requisição vazamento                                                
+                vazamento = pd.read_excel("vazamento.xlsx", index_col=0)  #lê a base de dados 
+                print('leitura do vazamento', vazamento)
+                print('Requisição de vazamento') 
                 vazamento = vazamento.values.tolist()
                 if len(vazamento) == 0: #se a lista de vazamento está vazia, ele retorna zero
                     client.publish("vazando/", 'Não há vazamento')
