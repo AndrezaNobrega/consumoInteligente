@@ -163,4 +163,6 @@
  
 
  # Considerações finais 
-<p2> &emsp; O projeto consegue realizar tudo dentro do previsto. Trouxe desafios na implementação e compreensão de protocolo mqtt, também possibilitou um estudo e reflexão mais aprofundada no que diz respeito ao que é a computação em névoa/borda. Algo que poderia ser adicionado em outras versões, seria adicionar mais brokers, visto que é um servidor, o qual manipula todas as informações. No entanto, como o projeto ainda está em fase de projeto, não é prejudicado o seu desempenho. Também pode ser modificada a interface no terminal, e inserir uma interface web. </p2> 
+<p2> &emsp; O projeto consegue realizar tudo dentro do previsto. Trouxe desafios na implementação e compreensão de protocolo mqtt, também possibilitou um estudo e reflexão mais aprofundada no que diz respeito ao que é a computação de borda. Algo que poderia ser adicionado em outras versões, é uma quantidade maior brokers, visto que é um servidor, o qual manipula todas as informações. Esses servidores poderiam ser separados por setores. No entanto, como o projeto ainda está em fase de projeto, não é prejudicado o seu desempenho. Também pode ser modificada a interface no terminal, e inserir uma interface web.
+ 
+ &emsp; Também, as comunicações que não são "fixas" poderiam ser feitas todas em REST, não apenas centralizada como ocorre na versão atual. Isso deixaria a solução menos custosa e até mais rápida. O que facilitaria a descentralização total do projeto, não sendo dependente da API central mostrada. </p2> 
