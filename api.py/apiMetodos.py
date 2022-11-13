@@ -80,7 +80,7 @@ def enviaTetoMetodo(teto):
 #método retorna os n hidrômetros com o maior consumo
 #n: é o número dr hidrômetros que você deseja receber
 def nHidrometros(n): 
-    listaAux.clear()
+    listaAux.clear()   
     client = connect_mqtt()    
     result = client.publish("api/nHidrometros", str(n)) 
     status = result[0]
@@ -88,7 +88,8 @@ def nHidrometros(n):
         print('Enviado com sucesso')
         resultado = subscribeNhidrometros(client)
         client.loop_forever()
-        return resultado
+        for hidrometro in resultado:
+            return hidrometro
     else:
         return 'Falha no envio'
 

@@ -16,27 +16,28 @@ def menu():
         id = input('Digite sua matrícula: ')
         setor = input('Digite aqui o seu setor:')
         print('Bem vindo',  resposta)   
-        print('1) Histórico do consumo') 
-        print('2) Litros Acumulados')
+        print('1) Consumo total') 
+        print('2) histórico')
         print('3) Valor')
         print('4) Pagar')
         print('5) Retornar para o menu')
         opcao = input('Digite a opção que deseja escolher: \n')  
         if opcao == '1':
-            print('HISTÓRICO DE CONSUMO:')            
+            print('LITROS ACUMULADOS')        
             import requests
             url = "http://127.0.0.1:5000/consumo-total/"+ setor + '/' + id
             payload = ""
             response = requests.request("GET", url, data=payload)
-            print(' Horário| Vazão | Litros utilizados')
+            
             print(response.text)
             menu()
         elif opcao == '2':
-            print('Litros acumulados:')            
+            print('HISTÓRICO DE CONSUMO:')           
             import requests
-            url = "http://127.0.0.1:5000/histórico/"+ setor + '/' + id
+            url = "http://127.0.0.1:5000/historico/"+ setor + '/' + id
             payload = ""
             response = requests.request("GET", url, data=payload) 
+            print(' Horário| Vazão | Litros utilizados')
             print(response.text)
             menu()
         elif opcao == '3':
