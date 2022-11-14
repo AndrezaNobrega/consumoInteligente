@@ -232,10 +232,8 @@ def verificaDebito(id):
 
 
 
-print(dfTemporario)
-dfTemporario.to_excel('historicoGeralNo.xlsx', index = False)
-df_Geral = df_Geral = pd.read_excel('historicoGeralNo.xlsx')
-print('df original \n ', df_Geral)
-#print('invertido \n', df_Geral[df_Geral.columns[::-1]])
+#fazer testes para retornar apenas o valor pedido da lista
 
-
+for hidro in listaTemporaria:
+    print(hidro)
+    break

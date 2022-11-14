@@ -85,16 +85,26 @@ def maiorGasto(maiorGasto_DataFrame, client, n):
     listaOrdenado = ordenado.values.tolist()
     print(listaOrdenado)
     if int(n) > len(listaOrdenado) or int(n) == len(listaOrdenado):   
-        print('primeira condição')     
+        print('n> len(lista)')
         for hidro in listaOrdenado: 
                 print('ID:', hidro[0], 'Litros utilizados:', hidro[1])
                 hidroAux = str(hidro[0])+ ',' + str(hidro[1]) + ',' #para facilitar a parte do envio
                 print('enviando', hidroAux)
                 client.publish("nHidrometros/", hidroAux)
         print('Cancelando inscrição')
-        client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição          
+        client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição   
+    elif int(n) == 1:
+        print('n == 1')
+        for hidro in listaOrdenado: 
+            print('ID:', hidro[0], 'Litros utilizados:', hidro[1])
+            hidroAux = str(hidro[0])+ ',' + str(hidro[1]) + ',' #para facilitar a parte do envio
+            print('enviando', hidroAux)
+            client.publish("nHidrometros/", hidroAux)
+            print('Cancelando inscrição')
+            client.publish('nHidrometros/', 'unsubscribe') #se atingiu o número, cancelará a inscrição  
+            break 
     else:
-        print('Segunda condição')
+        print('n dentro do intervalo da lista')
         for hidro in listaOrdenado:
             if contador != n:
                 contador =+1
