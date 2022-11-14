@@ -26,6 +26,7 @@ hidrometrosConectados = []
 tetoGasto = 0 #deve ser modificado pela API
 listaHidrometrosBloqueados = [] #hidrometros bloqueados por ultrapassarem a média geral
 listaPagamentos = [] #lista com o momento de pagamentos para cada hidrômetro
+listaTeto = [] #lista de hidrômetros que foram bloqueado por ultrapassarem o teto de gastos
 
 setorNevoa = str(input('Digite aqui o setor do seu nó: \n'))
 
@@ -173,7 +174,7 @@ def bloqueioMediaGeral(tabelaDB, mediaGeral, client):
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
     return idMediaGeral
 
-#médotod para desbloquear os hidrômetros que haviam sido bloqueados no ciclo anterior
+#médoto para desbloquear os hidrômetros que haviam sido bloqueados no ciclo anterior
 def desbloqueioMedia(listaIdsBloqueados, client):
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio 
     for id in listaIdsBloqueados:
@@ -195,21 +196,23 @@ def maiorGasto(tabelaDB):
     return listaTratada
 
 #bloqueia hidrômetros por seu teto de gastos
+#tabelaDB: dataframe com todos os hidrometros conectados ao programa
+#client: cliente mqtt que irá enviar a mensagem de bloqueio para os hidrômetros que ultrapassaram o valor
 def bloqueioTetoGasto(tabelaDB, tetoGasto, client):    
     topicoNevoa = 'bloqueio/'+ setorNevoa #será usado para enviar mensagens os hidrometros #bloqueio/desbloqueio    
-    print('BLOQUEIO TETO DE GASTOS COM HIDRÔMETROS QUE GASTARAM MAIS QUE ', tetoGasto)
+    print('BLOQUEIO TETO DE GASTOS COM HIDRÔMETROS QUE GASTARAM MAIS QUE ', tetoGasto, 'liros')
     tetoGasto = float(tetoGasto)
-    bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
+    bloqueioTabelaTestoGasto = tabelaDB.loc[tabelaDB['Litros Utilizados'] > tetoGasto, ['ID']] #aqui irá retornar o ID] #filtramos com o teto de gasto #o teto de gasto deve ser verificado ta todo momemento
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
-    print('Lista hidrômetros que ultrapassaram valor de bloqueio')
+    print('Lista hidrômetros que ultrapassaram valor de bloqueio', idTetoGastos)
     for id in idTetoGastos:
-        print(id)
+        print('Bloqueando', id)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         print('________________________________________________________________________________')  
         print(mensagemBloqueio)    
         print('________________________________________________________________________________')  
         client.publish(topicoNevoa, mensagemBloqueio) #bloquearHidro
-        return idTetoGastos
+    return idTetoGastos
 
 
 
@@ -340,6 +343,7 @@ def subscribeServer(client: mqtt_client):
         global nHidrometros
         global listaHidrometrosBloqueados
         global listaPagamentos
+        global listaTeto
         topico = msg.topic 
         print('*'*15)
         print ('TÓPICO:', topico)   
@@ -358,6 +362,8 @@ def subscribeServer(client: mqtt_client):
                     print('--------------------------Desbloqueio do ciclo anterior-------------------------') 
                     print('________________________________________________________________________________')  
                     desbloqueioMedia(listaHidrometrosBloqueados, client)
+                    if len(listaTeto)!= 0:
+                        desbloqueioMedia(listaTeto, client)
                     print('________________________________________________________________________________') 
                     print('--------------------------BLOQUEIO POR MÉDIA GERAL------------------------------') 
                     print('____________________________________________MEDIA GERAL:', mediaGeral, '________')                  
@@ -376,8 +382,8 @@ def subscribeServer(client: mqtt_client):
                 print('O teto de gastos foi alterado para', teto)
                 tetoGasto = teto
                 tabela = ultimaoOcorrencia(dado)
-                print(tabela)
-                listaHidrometrosBloqueados = bloqueioTetoGasto(tabela, tetoGasto, client) #quando recebe o novo teto de gastos, ele puxa a tabela de ocorrências dos hidrômetros. A partir daí, já acontece  bloqueio
+                print('tabela conectados ao nó: ',tabela)
+                listaTeto = bloqueioTetoGasto(tabela, tetoGasto, client) #quando recebe o novo teto de gastos, ele puxa a tabela de ocorrências dos hidrômetros. A partir daí, já acontece  bloqueio
                 #todos os hidrômetros que foram bloqueados, são add à lista de hidrômetros bloqueados, para que a cada ciclo ocorra a verficação
         elif aux == 'api':
             print('________________________________________________________________________________') 
@@ -422,7 +428,7 @@ def subscribeServer(client: mqtt_client):
             #esse trecho do código verifica o tempo todo se os hidrômetros conectados ultrapassaram o valor do teto de gasto
             if tetoGasto != 0: #0 é o valor de inicialização, portanto aqui estamos verificando se foi alterado ou não. Se ele já foi alterado, o bloqueio pelo teto já ocorre assim que recebe o hidrômetro
                 tabela = ultimaoOcorrencia(dado)
-                listaHidrometrosBloqueados = bloqueioTetoGasto(tabela, tetoGasto, client)  
+                listaTeto = bloqueioTetoGasto(tabela, tetoGasto, client)  
     
     
 

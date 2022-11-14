@@ -196,7 +196,7 @@ def subscribe(client: mqtt_client):
                 print('Seu hidrometros foi bloqueado.')
                 print('*'*40)   
                 print('*'*40)
-            elif acao == 'desbloquear':
+            else:
                 status = False
                 print('*'*40)   
                 print('*'*40)

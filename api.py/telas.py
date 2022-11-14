@@ -78,12 +78,12 @@ def menu():
             opcao = input('Digite aqui a opção que deseja acessar: \n')
             if opcao == '1':
                 import requests
-                teto = str(input('Digite aqui o teto de gastos que deseja inserir:'))
-                url = "http://127.0.0.11:5000/teto/" + teto
+                teto = str(input('Digite aqui o teto de gastos que deseja inserir:'))  
+                url = "http://127.0.0.1:5000/teto/"  + teto
                 payload = " "
                 headers = {"Content-Type": "application/json"}
                 response = requests.request("PATCH", url, data=payload, headers=headers)
-                print(response.text)
+                print(response.text) 
                 menu()
             elif opcao == '2':   
                 print('Visualização dos N maiores hidrômetros') 
