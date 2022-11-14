@@ -7,7 +7,7 @@ ADD templates/index.html /api/templates/
 ADD static/css/app.css /api/static/css/
 ADD static/js/app.js /api/static/js/
 
-EXPOSE 5000
+EXPOSE 5002
 
 WORKDIR /api/
 

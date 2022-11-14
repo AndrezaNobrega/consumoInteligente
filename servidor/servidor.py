@@ -5,7 +5,7 @@ import pandas as pd
 
 
 #broker = 'broker.emqx.io' broker público, se necessário
-broker = 'localhost'
+broker = '172.16.103.14' 
 port = 1883
 topic = 'NoNevoa/#'
 client_id = str(random.randint(0, 100))

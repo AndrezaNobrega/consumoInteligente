@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 #parâmetros de conexão com o broker
 '''broker = 'broker.emqx.io''' #broker público
-broker = 'localhost'
+broker = '172.16.103.14'
 port = 1883
 username = 'NoNevoa'   #172.16.103.14
 password = 'public'
@@ -206,7 +206,6 @@ def bloqueioTetoGasto(tabelaDB, tetoGasto, client):
     idTetoGastos = bloqueioTabelaTestoGasto['ID'].tolist() #retorna uma lista com apenas o ID do filtro já feito
     print('Lista hidrômetros que ultrapassaram valor de bloqueio', idTetoGastos)
     for id in idTetoGastos:
-        print('Bloqueando', id)
         mensagemBloqueio = 'bloquear/'+ str(id) 
         print('________________________________________________________________________________')  
         print(mensagemBloqueio)    
@@ -395,9 +394,9 @@ def subscribeServer(client: mqtt_client):
             if id == 'historico': #quando é pedido o histórico de um usuário específico
                 idPedido = msg.payload.decode()
                 retornaHistorico(idPedido, client)
-            if id == 'consumo': #litros consumidos   
+            if id == 'consumo': #litros consumidos                  
                 idPedido = msg.payload.decode()
-                print(idPedido)  
+                print('Retornando o consumo total do:', idPedido)  
                 retornaConsumo(idPedido, client)               
             if id == 'valorConta': #valor da conta
                 print('pedido valor da conta')

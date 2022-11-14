@@ -3,11 +3,11 @@ from paho.mqtt import client as mqtt_client
 from datetime import *
 
 #broker = 'broker.emqx.io'
-broker = 'localhost' #ip do broker
+broker = '172.16.103.14' #ip do broker #172.16.103.14
 port = 1883
 
 client_id =str(random.randint(0, 1000))
-username = 'API2'
+username = 'APIREST'
 password = 'public'
 conexoesLista = []
 listaAux = []
