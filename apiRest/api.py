@@ -53,5 +53,5 @@ def pagaConta(setor, id):
 
 #inicializando a API
 if __name__ == "__main__":
-    app.run(host='', port=5000)
+    app.run(host='172.16.103.6', port=5000)
 

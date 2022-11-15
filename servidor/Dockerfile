@@ -9,5 +9,6 @@ WORKDIR /servidor/
 
 RUN pip install paho-mqtt
 RUN pip install pandas
+RUN pip install o openpyxl
 
 CMD ["python3", "/servidor/servidor.py"]
